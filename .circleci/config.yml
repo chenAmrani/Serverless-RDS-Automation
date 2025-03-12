@@ -1,0 +1,10 @@
+# TODO Implement CI/CD pipeline with CircleCI
+# - Add deployment stage for AWS SAM to deploy serverless resources
+# - Add Terraform stage to provision the RDS Cluster
+# - Implement automated tests to ensure code stability
+# - Configure environment variables securely
+# - Add notifications for build success/failure
+# - Ensure caching is optimized for faster builds
+# - Implement rollback strategy for failed deployments
+
+

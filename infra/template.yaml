@@ -1,0 +1,7 @@
+# TODO Define all required serverless resources
+# - API Gateway for request handling
+# - SNS Topic for message broadcasting
+# - SQS Queue for queued messages awaiting Lambda
+# - Lambda Function logic for data processing
+# - IAM Roles with least privilege permissions for secure access
+# Ensure all resources are correctly linked and follow best practices.
