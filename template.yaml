@@ -3,29 +3,18 @@ Transform: AWS::Serverless-2016-10-31
 
 Resources:
 
-  # API Gateway
+  # 📌 API Gateway שמחובר לפונקציית SNSPublishLambda
   ServerlessApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
-      AccessLogSetting:
-        DestinationArn: !GetAtt ApiGatewayCloudWatchLogGroup.Arn
-        Format: '$context.requestId $context.identity.sourceIp $context.httpMethod $context.resourcePath $context.status $context.protocol $context.responseLength'
 
-  #CloudWatch
-  ApiGatewayCloudWatchLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/aws/api-gateway/${ServerlessApi}"
-
-  # "Hello World" func to check the lambda
+  # 📌 פונקציית Lambda בסיסית שמחזירה "Hello World"
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: lambda/handler.lambda_handler
       Runtime: python3.11
-      Policies:
-        - AWSLambdaBasicExecutionRole 
       Events:
         Api:
           Type: Api
@@ -34,15 +23,33 @@ Resources:
             Path: /hello
             Method: GET
 
-  # Topic - SNS
+  # 📌 נושא (Topic) של SNS להעברת הודעות
   MyTopic:
     Type: AWS::SNS::Topic
 
-  # Queue - SQS
+  # 📌 תור (Queue) של SQS לקבלת הודעות
   MyQueue:
     Type: AWS::SQS::Queue
 
-  # Added SNS to SQS subscription integration
+  # 📌 מדיניות הרשאה ל-SQS לאפשר קבלת הודעות מ-SNS
+  MyQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref MyQueue
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: "sns.amazonaws.com"
+            Action: "SQS:SendMessage"
+            Resource: !GetAtt MyQueue.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Ref MyTopic
+
+  # 📌 חיבור בין SNS ל-SQS באמצעות Subscription
   MyQueueSubscription:
     Type: AWS::SNS::Subscription
     Properties:
@@ -50,7 +57,7 @@ Resources:
       Protocol: sqs
       TopicArn: !Ref MyTopic
 
-  # SNS send to lambda
+  # 📌 פונקציית Lambda השולחת הודעה ל-SNS
   SNSPublishLambda:
     Type: AWS::Serverless::Function
     Properties:
@@ -60,7 +67,6 @@ Resources:
         Variables:
           TOPIC_ARN: !Ref MyTopic
       Policies:
-        - AWSLambdaBasicExecutionRole  
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt MyTopic.TopicName
       Events:
@@ -71,17 +77,40 @@ Resources:
             Path: /publish
             Method: POST
 
+  # 📌 פונקציית Lambda שצורכת הודעות מהתור SQS
+  SQSLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda/sqs_handler.lambda_handler
+      Runtime: python3.11
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - SQSPollerPolicy:
+            QueueName: !GetAtt MyQueue.QueueName
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt MyQueue.Arn
+            BatchSize: 10
+
 Outputs:
+  # 📌 כתובת ה-API ל-API Gateway
   ApiUrl:
     Description: "API Gateway endpoint URL for Prod stage"
     Value: !Sub "https://${ServerlessApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/publish"
 
+  # 📌 ARN של פונקציית ה-SNS Publish Lambda
   SNSPublishLambda:
     Description: "ARN of the SNS Publish Lambda Function"
     Value: !GetAtt SNSPublishLambda.Arn
 
+  # 📌 ARN של פונקציית ה-Hello World Lambda
   HelloWorldFunction:
     Description: "ARN of the Hello World Lambda Function"
     Value: !GetAtt HelloWorldFunction.Arn
 
-
+  # 📌 ARN של פונקציית Lambda שצורכת הודעות מהתור SQS
+  SQSLambda:
+    Description: "ARN of the SQS Consumer Lambda Function"
+    Value: !GetAtt SQSLambda.Arn
