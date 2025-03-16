@@ -1,8 +1,8 @@
 version = 0.1
 [default.deploy.parameters]
-stack_name = "serverless-rd"
+stack_name = "serverless-rds"
 resolve_s3 = true
-s3_prefix = "serverless-rd"
+s3_prefix = "serverless-rds"
 region = "us-east-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
