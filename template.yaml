@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+
+  # API Gateway
+  ServerlessApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiGatewayCloudWatchLogGroup.Arn
+        Format: '$context.requestId $context.identity.sourceIp $context.httpMethod $context.resourcePath $context.status $context.protocol $context.responseLength'
+
+  #CloudWatch
+  ApiGatewayCloudWatchLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/api-gateway/${ServerlessApi}"
+
+  # "Hello World" func to check the lambda
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda/handler.lambda_handler
+      Runtime: python3.11
+      Policies:
+        - AWSLambdaBasicExecutionRole 
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessApi
+            Path: /hello
+            Method: GET
+
+  # Topic - SNS
+  MyTopic:
+    Type: AWS::SNS::Topic
+
+  # Queue - SQS
+  MyQueue:
+    Type: AWS::SQS::Queue
+
+  # Added SNS to SQS subscription integration
+  MyQueueSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !GetAtt MyQueue.Arn
+      Protocol: sqs
+      TopicArn: !Ref MyTopic
+
+  # SNS send to lambda
+  SNSPublishLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda/sns_handler.lambda_handler
+      Runtime: python3.11
+      Environment:
+        Variables:
+          TOPIC_ARN: !Ref MyTopic
+      Policies:
+        - AWSLambdaBasicExecutionRole  
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt MyTopic.TopicName
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessApi
+            Path: /publish
+            Method: POST
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${ServerlessApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/publish"
+
+  SNSPublishLambda:
+    Description: "ARN of the SNS Publish Lambda Function"
+    Value: !GetAtt SNSPublishLambda.Arn
+
+  HelloWorldFunction:
+    Description: "ARN of the Hello World Lambda Function"
+    Value: !GetAtt HelloWorldFunction.Arn
+
+
