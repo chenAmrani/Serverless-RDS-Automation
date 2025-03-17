@@ -1,35 +1,32 @@
 version: 2.1
 
 executors:
-  machine-executor:
-    machine:
-      image: ubuntu-2204:current
+  default:
+    docker:
+      - image: circleci/python:3.11  # שימוש בתמונה שמגיעה עם פייתון 3.11 מותקן מראש
 
 jobs:
   build-test-deploy:
-    executor: machine-executor
+    executor: default
     steps:
       - checkout
 
       - run:
-          name: Install Dependencies
+          name: Install Terraform
           command: |
-            sudo apt-get update
-            sudo apt-get install -y unzip
             curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
             echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
             sudo apt-get update && sudo apt-get install terraform
 
       - run:
-          name: Install AWS SAM CLI
+          name: Install SAM CLI
           command: |
-            curl -Lo sam-installation.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
-            unzip sam-installation.zip -d sam-installation
-            sudo ./sam-installation/install
+            pip install aws-sam-cli
 
       - run:
           name: Build SAM Application
-          command: sam build
+          command: |
+            sam build
 
       - run:
           name: Deploy SAM Application
@@ -50,4 +47,6 @@ workflows:
       - build-test-deploy:
           filters:
             branches:
-              only: main
+              only:
+                - main
+                - feature/*
