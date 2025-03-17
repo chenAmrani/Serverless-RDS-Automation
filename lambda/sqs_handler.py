@@ -4,14 +4,12 @@ import logging
 import requests
 import base64
 import os
-from github import Github 
+from github import Github  
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 rds_client = boto3.client('rds')
-
-
 
 def get_github_token():
     client = boto3.client('secretsmanager')
@@ -33,11 +31,14 @@ def generate_terraform_code(message_body):
 
     return f"""
 resource "aws_db_instance" "{message_body['databaseName']}" {{
-  Database_Name = "{message_body['databaseName']}"
-  enginDatabase_Engine = "{message_body['engine'].lower()}"
-  Environment = ""{message_body['environment']}"
+  identifier = "{message_body['databaseName']}"
+  Database Engine = "{message_body['engine'].lower()}"
   instance_class = "{instance_class}"
   allocated_storage = {allocated_storage}
+  tags = {{
+    Database_Name = "{message_body['databaseName']}"
+    Environment = "{message_body['environment'].capitalize()}"
+  }}
 }}
 """
 
@@ -53,7 +54,7 @@ def create_github_pr(message_body):
 
     terraform_code = generate_terraform_code(message_body)
     repo.create_file(
-        f"{message_body['databaseName']}_rds.tf",
+        f"terraform/{message_body['databaseName']}_main.tf",
         f"Add RDS instance for {message_body['databaseName']}",
         terraform_code,
         branch=branch_name
