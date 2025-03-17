@@ -1,52 +1,45 @@
 version: 2.1
 
-jobs:
-  deploy_sam:
+executors:
+  default:
     docker:
-      - image: amazon/aws-sam-cli
-    steps:
-      - checkout
-      - run:
-          name: Install dependencies
-          command: |
-            pip install -r requirements.txt
-      - run:
-          name: Deploy AWS SAM Stack
-          command: |
-            sam deploy --guided
+      - image: public.ecr.aws/sam/cli:latest  # תמונה עדכנית ל-SAM CLI
 
-  apply_terraform:
-    docker:
-      - image: hashicorp/terraform:latest
+jobs:
+  build-and-deploy:
+    executor: default
     steps:
       - checkout
+
       - run:
-          name: Initialize Terraform
+          name: Install Terraform
+          command: |
+            curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+            echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+            sudo apt-get update && sudo apt-get install terraform
+
+      - run:
+          name: Build SAM Application
+          command: |
+            sam build
+
+      - run:
+          name: Deploy SAM Application
+          command: |
+            sam deploy --no-confirm-changeset --stack-name serverless-rds-stack --capabilities CAPABILITY_IAM
+
+      - run:
+          name: Deploy RDS via Terraform
           command: |
             cd infra
             terraform init
-      - run:
-          name: Apply Terraform Changes
-          command: |
-            cd infra
-            terraform apply -auto-approve \
-              -var="db_name=${DB_NAME}" \
-              -var="db_engine=${DB_ENGINE}" \
-              -var="environment=${ENVIRONMENT}" \
-              -var="db_username=${DB_USERNAME}" \
-              -var="db_password=${DB_PASSWORD}"
+            terraform apply -auto-approve
 
 workflows:
   version: 2
-  deploy:
+  deploy_on_merge:
     jobs:
-      - deploy_sam:
-          filters:
-            branches:
-              only: main
-      - apply_terraform:
-          requires:
-            - deploy_sam
+      - build-and-deploy:
           filters:
             branches:
               only: main
