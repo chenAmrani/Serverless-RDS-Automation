@@ -64,12 +64,20 @@ Resources:
       Runtime: python3.11
       Environment:
         Variables:
-          RDS_INSTANCE_IDENTIFIER: "my-rds-instance"  # <-- הוספת משתנה סביבה
+          RDS_INSTANCE_IDENTIFIER: "my-rds-instance"
+          GITHUB_TOKEN: "{{resolve:secretsmanager:GITHUB_TOKEN}}"
       Policies:
         - AWSLambdaBasicExecutionRole
         - SQSPollerPolicy:
             QueueName: !GetAtt MyQueue.QueueName
-        - AmazonRDSFullAccess  # <-- שומר על ההרשאה שכבר קיימת
+        - AmazonRDSFullAccess  
+        - Statement:
+            Effect: Allow
+            Action: 
+              - secretsmanager:GetSecretValue
+            Resource: "*"
+ 
+
       Events:
         SQSEvent:
           Type: SQS

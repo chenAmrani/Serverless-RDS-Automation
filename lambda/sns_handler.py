@@ -10,7 +10,6 @@ sns_client = boto3.client('sns')
 
 def lambda_handler(event, context):
     try:
-        # לקרוא את גוף הבקשה שהגיע מה-API Gateway
         database_request = json.loads(event['body'])
 
         response = sns_client.publish(
