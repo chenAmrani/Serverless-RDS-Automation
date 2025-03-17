@@ -6,7 +6,7 @@ executors:
       - image: public.ecr.aws/sam/cli:latest  # תמונה עדכנית ל-SAM CLI
 
 jobs:
-  build-and-deploy:
+  build-test-deploy:
     executor: default
     steps:
       - checkout
