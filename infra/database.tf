@@ -1,8 +1,8 @@
 resource "aws_db_instance" "rds_instance" {
-  identifier             = "example-rds-instance"
+  identifier             = var.db_name
   engine                 = var.db_engine
   instance_class         = var.environment == "Dev" ? "db.t3.micro" : "db.t3.medium"
-  allocated_storage      = 20
+  allocated_storage      = var.environment == "Dev" ? 20 : 100
   db_name                = var.db_name
   username               = var.db_username
   password               = var.db_password

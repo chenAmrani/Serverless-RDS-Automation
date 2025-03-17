@@ -1,10 +1,52 @@
-# TODO Implement CI/CD pipeline with CircleCI
-# - Add deployment stage for AWS SAM to deploy serverless resources
-# - Add Terraform stage to provision the RDS Cluster
-# - Implement automated tests to ensure code stability
-# - Configure environment variables securely
-# - Add notifications for build success/failure
-# - Ensure caching is optimized for faster builds
-# - Implement rollback strategy for failed deployments
+version: 2.1
 
+jobs:
+  deploy_sam:
+    docker:
+      - image: amazon/aws-sam-cli
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            pip install -r requirements.txt
+      - run:
+          name: Deploy AWS SAM Stack
+          command: |
+            sam deploy --guided
 
+  apply_terraform:
+    docker:
+      - image: hashicorp/terraform:latest
+    steps:
+      - checkout
+      - run:
+          name: Initialize Terraform
+          command: |
+            cd infra
+            terraform init
+      - run:
+          name: Apply Terraform Changes
+          command: |
+            cd infra
+            terraform apply -auto-approve \
+              -var="db_name=${DB_NAME}" \
+              -var="db_engine=${DB_ENGINE}" \
+              -var="environment=${ENVIRONMENT}" \
+              -var="db_username=${DB_USERNAME}" \
+              -var="db_password=${DB_PASSWORD}"
+
+workflows:
+  version: 2
+  deploy:
+    jobs:
+      - deploy_sam:
+          filters:
+            branches:
+              only: main
+      - apply_terraform:
+          requires:
+            - deploy_sam
+          filters:
+            branches:
+              only: main
