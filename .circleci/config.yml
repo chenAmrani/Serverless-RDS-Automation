@@ -1,27 +1,35 @@
 version: 2.1
 
 executors:
-  default:
-    docker:
-      - image: amazon/aws-sam-cli-build-image:latest  
+  machine-executor:
+    machine:
+      image: ubuntu-2004:202101-01
 
 jobs:
   build-test-deploy:
-    executor: default
+    executor: machine-executor
     steps:
       - checkout
 
       - run:
-          name: Install Terraform
+          name: Install Dependencies
           command: |
+            sudo apt-get update
+            sudo apt-get install -y unzip
             curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
             echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
             sudo apt-get update && sudo apt-get install terraform
 
       - run:
-          name: Build SAM Application
+          name: Install AWS SAM CLI
           command: |
-            sam build
+            curl -Lo sam-installation.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
+            unzip sam-installation.zip -d sam-installation
+            sudo ./sam-installation/install
+
+      - run:
+          name: Build SAM Application
+          command: sam build
 
       - run:
           name: Deploy SAM Application
@@ -42,6 +50,4 @@ workflows:
       - build-test-deploy:
           filters:
             branches:
-              only:
-                - main
-                - feature/*
+              only: main
