@@ -3,7 +3,7 @@ version: 2.1
 executors:
   default:
     docker:
-      - image: amazon/aws-sam-cli:latest  
+      - image: amazon/aws-sam-cli-build-image:latest  
 
 jobs:
   build-test-deploy:
