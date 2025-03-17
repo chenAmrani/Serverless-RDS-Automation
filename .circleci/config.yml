@@ -3,7 +3,7 @@ version: 2.1
 executors:
   default:
     docker:
-      - image: public.ecr.aws/sam/cli:latest  # תמונה עדכנית ל-SAM CLI
+      - image: public.ecr.aws/sam/cli:latest  
 
 jobs:
   build-test-deploy:
@@ -42,4 +42,6 @@ workflows:
       - build-test-deploy:
           filters:
             branches:
-              only: main
+              only:
+                - main
+                - feature/*
