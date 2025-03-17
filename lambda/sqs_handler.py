@@ -31,14 +31,11 @@ def generate_terraform_code(message_body):
 
     return f"""
 resource "aws_db_instance" "{message_body['databaseName']}" {{
-  identifier = "{message_body['databaseName']}"
+  Database_Name = "{message_body['databaseName']}"
   Database Engine = "{message_body['engine'].lower()}"
+  Environment = "{message_body['environment'].capitalize()}"
   instance_class = "{instance_class}"
   allocated_storage = {allocated_storage}
-  tags = {{
-    Database_Name = "{message_body['databaseName']}"
-    Environment = "{message_body['environment'].capitalize()}"
-  }}
 }}
 """
 
