@@ -8,19 +8,6 @@ Resources:
     Properties:
       StageName: Prod
 
-  HelloWorldFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: lambda/handler.lambda_handler
-      Runtime: python3.11
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            RestApiId: !Ref ServerlessApi
-            Path: /hello
-            Method: GET
-
   MyTopic:
     Type: AWS::SNS::Topic
 
@@ -75,10 +62,14 @@ Resources:
     Properties:
       Handler: lambda/sqs_handler.lambda_handler
       Runtime: python3.11
+      Environment:
+        Variables:
+          RDS_INSTANCE_IDENTIFIER: "my-rds-instance"  # <-- הוספת משתנה סביבה
       Policies:
         - AWSLambdaBasicExecutionRole
         - SQSPollerPolicy:
             QueueName: !GetAtt MyQueue.QueueName
+        - AmazonRDSFullAccess  # <-- שומר על ההרשאה שכבר קיימת
       Events:
         SQSEvent:
           Type: SQS
@@ -94,10 +85,6 @@ Outputs:
   SNSPublishLambda:
     Description: "ARN of the SNS Publish Lambda Function"
     Value: !GetAtt SNSPublishLambda.Arn
-
-  HelloWorldFunction:
-    Description: "ARN of the Hello World Lambda Function"
-    Value: !GetAtt HelloWorldFunction.Arn
 
   SQSLambda:
     Description: "ARN of the SQS Consumer Lambda Function"
