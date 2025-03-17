@@ -39,7 +39,7 @@ workflows:
   version: 2
   deploy_on_merge:
     jobs:
-      - build-and-deploy:
+      - build-test-deploy:
           filters:
             branches:
               only: main
