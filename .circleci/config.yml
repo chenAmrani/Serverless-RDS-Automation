@@ -59,10 +59,10 @@ jobs:
       - run:
           name: Verify Secrets Manager Entry
           command: |
-            DATABASE_NAME=${DATABASE_NAME:-"exampleDB"}  # שם דינמי
+            DATABASE_NAME=${DATABASE_NAME:-$(cat ~/project/database_name.txt)}  # קבלת שם מהקובץ
             aws secretsmanager get-secret-value \
-            --secret-id "mysql/${DATABASE_NAME}/DB_CREDENTIALS" \
-            --region us-east-1 || \
+              --secret-id "mysql/${DATABASE_NAME}/DB_CREDENTIALS" \
+              --region us-east-1 || \
             echo "❌ Secret not found for database ${DATABASE_NAME}. Please investigate."
 
       - run:
