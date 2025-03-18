@@ -53,13 +53,6 @@ jobs:
             cat ~/project/terraform/*_main.tf  
 
       - run:
-          name: Deploy RDS via Terraform
-          command: |
-            cd ~/project/terraform
-            terraform init
-            terraform apply -auto-approve -target=aws_db_instance.exampleDB
-            
-      - run:
           name: List Terraform Files
           command: |
             ls -la ~/project/terraform
@@ -67,6 +60,15 @@ jobs:
       - run:
           name: Clean Old Terraform Files
           command: rm -rf ~/project/terraform/*.tf
+          
+      - run:
+          name: Deploy RDS via Terraform
+          command: |
+            cd ~/project/terraform
+            terraform init
+            terraform apply -auto-approve -target=aws_db_instance.exampleDB
+            
+      
 
 workflows:
   version: 2
