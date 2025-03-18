@@ -47,29 +47,28 @@ jobs:
             sam deploy --no-confirm-changeset --stack-name serverless-rds-stack --capabilities CAPABILITY_IAM
 
       - run:
-          name: Verify PR Files
-          command: |
-            ls -la ~/project/terraform
-            cat ~/project/terraform/*_main.tf  
+          name: Clean Old Terraform Files  
+          command: rm -rf ~/project/terraform/*.tf
 
       - run:
-          name: List Terraform Files
+          name: Wait for CloudFormation Stack Update  
+          command: |
+            aws cloudformation wait stack-update-complete \
+            --stack-name serverless-rds-stack || true
+
+      - run:
+          name: List Terraform Files 
           command: |
             ls -la ~/project/terraform
             cat ~/project/terraform/*.tf
-      - run:
-          name: Clean Old Terraform Files
-          command: rm -rf ~/project/terraform/*.tf
-          
+
       - run:
           name: Deploy RDS via Terraform
           command: |
-            cd ~/project/terraform
+            cd ~/project/terraform  
             terraform init
-            terraform apply -auto-approve -target=aws_db_instance.exampleDB
+            terraform apply -auto-approve
             
-      
-
 workflows:
   version: 2
   deploy_on_merge:
