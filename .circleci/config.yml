@@ -57,6 +57,12 @@ jobs:
             fi
 
       - run:
+          name: Extract DB Name from Branch
+          command: |
+            DB_NAME=$(echo $CIRCLE_BRANCH | sed 's/feature\///' | sed 's/create-//')
+            echo "DB_NAME=$DB_NAME" >> $BASH_ENV
+
+      - run:
           name: Verify Secrets Manager Entry
           command: |
             DATABASE_NAME=$(grep -oP 'identifier\s*=\s*"\K[^"]+' ~/project/terraform/*.tf)
@@ -88,7 +94,9 @@ jobs:
           command: |
             cd ~/project/terraform  
             terraform init
-            terraform apply -auto-approve
+            terraform apply -auto-approve \
+            -var="db_name=$DB_NAME" \
+            -var="secret_name=mysql/$DB_NAME/DB_CREDENTIALS"
 
 workflows:
   version: 2
