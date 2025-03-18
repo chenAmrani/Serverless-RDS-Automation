@@ -71,12 +71,7 @@ jobs:
             aws cloudformation wait stack-update-complete \
             --stack-name serverless-rds-stack || true
 
-      - run:
-          name: List Terraform Files (Post-check) 
-          command: |
-            ls -la ~/project/terraform
-            cat ~/project/terraform/*.tf || echo "❌ No Terraform content found."
-
+    
       - run:
           name: Deploy RDS via Terraform
           command: |
