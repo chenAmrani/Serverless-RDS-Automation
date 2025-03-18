@@ -64,12 +64,6 @@ jobs:
             echo "❌ Secret not found. Please investigate."
 
       - run:
-          name: List Terraform Files (Pre-check) 
-          command: |
-            ls -la ./terraform/
-            cat ./terraform/*.tf || echo "❌ No Terraform content found."
-
-      - run:
           name: Wait for CloudFormation Stack Update  
           command: |
             STACK_NAME=$(aws cloudformation list-stacks \
