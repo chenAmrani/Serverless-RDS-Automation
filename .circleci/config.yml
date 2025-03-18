@@ -58,6 +58,15 @@ jobs:
             cd ~/project/terraform
             terraform init
             terraform apply -auto-approve -target=aws_db_instance.exampleDB
+            
+      - run:
+          name: List Terraform Files
+          command: |
+            ls -la ~/project/terraform
+            cat ~/project/terraform/*.tf
+      - run:
+          name: Clean Old Terraform Files
+          command: rm -rf ~/project/terraform/*.tf
 
 workflows:
   version: 2
