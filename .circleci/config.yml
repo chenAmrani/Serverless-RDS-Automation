@@ -22,72 +22,10 @@ jobs:
             sudo apt-get update && sudo apt-get install terraform awscli
 
       - run:
-          name: Install Python 3.11
-          command: |
-            sudo apt-get update
-            sudo apt-get install -y python3.11 python3.11-venv python3.11-dev
-            sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-            python3 --version  
-
-      - run:
-          name: Install AWS SAM CLI
-          command: |
-            curl -Lo sam-installation.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
-            unzip sam-installation.zip -d sam-installation
-            sudo ./sam-installation/install
-
-      - run:
-          name: Build SAM Application
-          command: |
-            sam build
-
-      - run:
-          name: Check if Stack Exists
-          command: |
-            STACK_NAME=$(aws cloudformation list-stacks \
-              --query "StackSummaries[?StackStatus=='CREATE_COMPLETE' || StackStatus=='UPDATE_COMPLETE'].StackName" \
-              --output text | grep "serverless-rds-stack")
-
-            if [ -n "$STACK_NAME" ]; then
-              echo "✅ Stack exists ($STACK_NAME), skipping deployment."
-              exit 0
-            else
-              echo "🚀 Stack does not exist, deploying..."
-              sam deploy --no-confirm-changeset --stack-name serverless-rds-stack --capabilities CAPABILITY_IAM
-            fi
-
-      - run:
           name: Extract DB Name from Branch
           command: |
             DB_NAME=$(echo $CIRCLE_BRANCH | sed 's/feature\///' | sed 's/create-//')
             echo "DB_NAME=$DB_NAME" >> $BASH_ENV
-
-      - run:
-          name: Verify Secrets Manager Entry
-          command: |
-            DATABASE_NAME=$(grep -oP 'identifier\s*=\s*"\K[^"]+' ~/project/terraform/*.tf)
-            echo "Database Name found: $DATABASE_NAME"
-
-            aws secretsmanager get-secret-value \
-              --secret-id "mysql/${DATABASE_NAME}/DB_CREDENTIALS" \
-              --region us-east-1 || \
-            echo "❌ Secret not found for database ${DATABASE_NAME}. Please investigate."
-
-      - run:
-          name: Wait for CloudFormation Stack Update  
-          command: |
-            STACK_NAME=$(aws cloudformation list-stacks \
-              --query "StackSummaries[?StackStatus=='CREATE_COMPLETE' || StackStatus=='UPDATE_COMPLETE'].StackName" \
-              --output text | grep "serverless-rds-stack")
-
-         
-            if aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].StackStatus" --output text | grep -q "UPDATE_IN_PROGRESS"; then
-                echo "⏳ Stack is updating... Waiting for completion."
-                aws cloudformation wait stack-update-complete --stack-name $STACK_NAME
-                echo "✅ Stack update complete."
-            else
-                echo "✅ No update in progress. Skipping wait."
-            fi
 
       - run:
           name: Deploy RDS via Terraform

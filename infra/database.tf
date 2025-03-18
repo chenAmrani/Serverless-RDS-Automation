@@ -6,7 +6,6 @@ data "aws_secretsmanager_secret_version" "latest" {
   secret_id = data.aws_secretsmanager_secret.db_password.id
 }
 
-
 resource "aws_db_instance" "rds_instance" {
   identifier             = var.db_name
   engine                 = var.db_engine
