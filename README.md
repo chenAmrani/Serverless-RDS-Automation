@@ -8,9 +8,6 @@
 - **Database Engine** (MySQL, PostgreSQL)
 - **Environment** (Dev/Prod) — determines cluster size
 
-![Blank diagram](https://github.com/user-attachments/assets/dd4d898d-bfd5-43b1-ac66-788b80cb8a75)
----
-
 ### Key Features
 
 ✅ **AWS SAM** for serverless deployment\
@@ -23,6 +20,9 @@
 ---
 
 ## Architecture
+
+![Blank diagram (2)](https://github.com/user-attachments/assets/3af39e33-729f-4ddc-ae70-4ced6b45b1d9)
+
 
 ### AWS Services Used:
 
