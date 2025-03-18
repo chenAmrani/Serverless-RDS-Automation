@@ -59,9 +59,11 @@ jobs:
       - run:
           name: Verify Secrets Manager Entry
           command: |
+            DATABASE_NAME=${DATABASE_NAME:-"exampleDB"}  # שם דינמי
             aws secretsmanager get-secret-value \
-            --secret-id "mysql/exampleDB/DB_CREDENTIALS" || \
-            echo "❌ Secret not found. Please investigate."
+            --secret-id "mysql/${DATABASE_NAME}/DB_CREDENTIALS" \
+            --region us-east-1 || \
+            echo "❌ Secret not found for database ${DATABASE_NAME}. Please investigate."
 
       - run:
           name: Wait for CloudFormation Stack Update  
