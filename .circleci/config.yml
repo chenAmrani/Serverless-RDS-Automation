@@ -59,7 +59,9 @@ jobs:
       - run:
           name: Verify Secrets Manager Entry
           command: |
-            DATABASE_NAME=${DATABASE_NAME:-$(cat ~/project/database_name.txt)}  # קבלת שם מהקובץ
+            DATABASE_NAME=$(grep -oP 'identifier\s*=\s*"\K[^"]+' ~/project/terraform/*.tf)
+            echo "Database Name found: $DATABASE_NAME"
+
             aws secretsmanager get-secret-value \
               --secret-id "mysql/${DATABASE_NAME}/DB_CREDENTIALS" \
               --region us-east-1 || \
