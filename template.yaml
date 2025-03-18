@@ -76,14 +76,30 @@ Resources:
             Action: 
               - secretsmanager:GetSecretValue
             Resource: "*"
- 
-
       Events:
         SQSEvent:
           Type: SQS
           Properties:
             Queue: !GetAtt MyQueue.Arn
             BatchSize: 10
+
+  CleanupRDSLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda/cleanup_rds.lambda_handler
+      Runtime: python3.11
+      Environment:
+        Variables:
+          RDS_INSTANCE_IDENTIFIER: "my-rds-instance"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonRDSFullAccess
+      Events:
+        ScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: "rate(5 minutes)" 
+            Enabled: true
 
 Outputs:
   ApiUrl:
@@ -97,3 +113,7 @@ Outputs:
   SQSLambda:
     Description: "ARN of the SQS Consumer Lambda Function"
     Value: !GetAtt SQSLambda.Arn
+
+  CleanupRDSLambda:
+    Description: "ARN of the Cleanup RDS Lambda Function"
+    Value: !GetAtt CleanupRDSLambda.Arn
