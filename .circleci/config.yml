@@ -42,6 +42,17 @@ jobs:
             sam build
 
       - run:
+          name: Check if Stack Exists
+          command: |
+            if aws cloudformation describe-stacks --stack-name serverless-rds-stack 2>/dev/null; then
+            echo "✅ Stack exists, skipping deployment."
+            exit 0
+            else
+            echo "🚀 Stack does not exist, deploying..."
+            sam deploy --no-confirm-changeset --stack-name serverless-rds-stack --capabilities CAPABILITY_IAM
+            fi
+
+      - run:
           name: Deploy SAM Application
           command: |
             sam deploy --no-confirm-changeset --stack-name serverless-rds-stack --capabilities CAPABILITY_IAM
