@@ -62,7 +62,7 @@ jobs:
       - run:
           name: List Terraform Files (Pre-check) 
           command: |
-            ls -la ~/project/terraform
+            ls -la ./terraform/
             cat ~/project/terraform/*.tf || echo "❌ No Terraform content found."
 
       - run:
