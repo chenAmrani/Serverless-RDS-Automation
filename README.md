@@ -21,6 +21,9 @@
 
 ## Architecture
 
+![Blank diagram (2)](https://github.com/user-attachments/assets/3af39e33-729f-4ddc-ae70-4ced6b45b1d9)
+
+
 ### AWS Services Used:
 
 - **API Gateway** – Exposes an endpoint for developers to request RDS clusters.
