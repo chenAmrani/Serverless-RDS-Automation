@@ -39,6 +39,7 @@ resource "aws_db_instance" "{message_body['databaseName']}" {{
   tags = {{
     Environment = "{message_body['environment'].capitalize()}"
   }}
+  }}
 
 def create_github_pr(message_body):
     repo_name = "chenAmrani/Serverless-RDS-Automation"
