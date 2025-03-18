@@ -9,7 +9,8 @@ jobs:
   build-test-deploy:
     executor: machine-executor
     steps:
-      - checkout
+      - checkout:
+          path: ~/project  
 
       - run:
           name: Install Dependencies
@@ -26,7 +27,7 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y python3.11 python3.11-venv python3.11-dev
             sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-            python3 --version  # לוודא שהגרסה היא Python 3.11
+            python3 --version  
 
       - run:
           name: Install AWS SAM CLI
@@ -46,11 +47,17 @@ jobs:
             sam deploy --no-confirm-changeset --stack-name serverless-rds-stack --capabilities CAPABILITY_IAM
 
       - run:
+          name: Verify PR Files
+          command: |
+            ls -la ~/project/terraform
+            cat ~/project/terraform/*_main.tf  
+
+      - run:
           name: Deploy RDS via Terraform
           command: |
-            cd infra
+            cd ~/project/terraform
             terraform init
-            terraform apply -auto-approve
+            terraform apply -auto-approve -target=aws_db_instance.exampleDB
 
 workflows:
   version: 2
