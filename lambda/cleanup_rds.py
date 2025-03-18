@@ -8,11 +8,11 @@ logger.setLevel(logging.INFO)
 
 rds_client = boto3.client('rds')
 
-RETENTION_PERIOD = int(os.getenv('RETENTION_PERIOD', 5))
+RETENTION_PERIOD = int(os.getenv('RETENTION_PERIOD', 3))
 
 def lambda_handler(event, context):
     try:
-        max_creation_date = datetime.now() - timedelta(days=RETENTION_PERIOD)
+        max_creation_date = datetime.now() - timedelta(hours=RETENTION_PERIOD)
 
         db_instances = rds_client.describe_db_instances()
 
