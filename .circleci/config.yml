@@ -72,7 +72,7 @@ jobs:
               --query "StackSummaries[?StackStatus=='CREATE_COMPLETE' || StackStatus=='UPDATE_COMPLETE'].StackName" \
               --output text | grep "serverless-rds-stack")
 
-            # בדיקה אם הסטאק נמצא בעדכון
+         
             if aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].StackStatus" --output text | grep -q "UPDATE_IN_PROGRESS"; then
                 echo "⏳ Stack is updating... Waiting for completion."
                 aws cloudformation wait stack-update-complete --stack-name $STACK_NAME
