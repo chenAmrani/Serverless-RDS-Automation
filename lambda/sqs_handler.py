@@ -5,11 +5,14 @@ import requests
 import base64
 import os
 from github import Github  
+import random
+import string  
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 rds_client = boto3.client('rds')
+secrets_manager_client = boto3.client('secretsmanager')
 
 def get_github_token():
     client = boto3.client('secretsmanager')
@@ -25,23 +28,46 @@ def get_github_token():
 
 github_token = get_github_token()
 
-def generate_terraform_code(message_body):
-    instance_class = "db.t3.micro" if message_body['environment'].lower() == "dev" else "db.t3.medium"
-    allocated_storage = 20 if message_body['environment'].lower() == "dev" else 100
+def generate_password(length=12):
+    characters = string.ascii_letters + string.digits + "!@#$%^&*"
+    return ''.join(random.choices(characters, k=length))
+
+def create_secret(secret_name, password):
+    try:
+        secrets_manager_client.create_secret(
+            Name=secret_name,
+            SecretString=json.dumps({"password": password})
+        )
+        logger.info(f"✅ Secret '{secret_name}' created successfully.")
+    except secrets_manager_client.exceptions.ResourceExistsException:
+        logger.warning(f"⚠️ Secret '{secret_name}' already exists. Skipping creation.")
 
 def generate_terraform_code(message_body):
     instance_class = "db.t3.micro" if message_body['environment'].lower() == "dev" else "db.t3.medium"
     allocated_storage = 20 if message_body['environment'].lower() == "dev" else 100
+
+    secret_name = f"mysql/{message_body['databaseName']}/DB_CREDENTIALS"
+    password = generate_password()
+
+    create_secret(secret_name, password)
 
     return f"""
+data "aws_secretsmanager_secret" "db_password" {{
+  name = "{secret_name}"
+}}
+
+data "aws_secretsmanager_secret_version" "latest" {{
+  secret_id = data.aws_secretsmanager_secret.db_password.id
+}}
+
 resource "aws_db_instance" "{message_body['databaseName']}" {{
   identifier       = "{message_body['databaseName']}"
   engine           = "{message_body['engine'].lower()}"
   instance_class   = "{instance_class}"
   allocated_storage = {allocated_storage}
-  
+
   username         = "admin"           
-  password         = "examplePass" 
+  password         = jsondecode(data.aws_secretsmanager_secret_version.latest.secret_string)["password"]
 
   tags = {{
     Environment = "{message_body['environment'].capitalize()}"
