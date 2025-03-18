@@ -12,7 +12,7 @@
 
 ✅ **AWS SAM** for serverless deployment\
 ✅ **Terraform** for RDS provisioning\
-✅ **Lambda function** for GitHub PR creation\
+✅ **Lambda Functions** for SNS Message Publishing & GitHub PR Creation\
 ✅ **CircleCI** for automated CI/CD pipeline\
 ✅ **Secure storage** of credentials using AWS Secrets Manager\
 ✅ **Automated cleanup** of RDS clusters
