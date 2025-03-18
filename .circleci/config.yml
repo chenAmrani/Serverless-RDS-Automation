@@ -53,6 +53,13 @@ jobs:
             fi
 
       - run:
+          name: Verify Secrets Manager Entry
+          command: |
+            aws secretsmanager get-secret-value \
+            --secret-id "mysql/exampleDB/DB_CREDENTIALS" || \
+            echo "❌ Secret not found. Please investigate."
+
+      - run:
           name: List Terraform Files (Pre-check) 
           command: |
             ls -la ~/project/terraform
