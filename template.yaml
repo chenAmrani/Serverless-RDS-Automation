@@ -7,6 +7,8 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
+    Auth:
+      DefaultAuthorizer: AWS_IAM
 
   MyTopic:
     Type: AWS::SNS::Topic
@@ -56,6 +58,8 @@ Resources:
             RestApiId: !Ref ServerlessApi
             Path: /publish
             Method: POST
+            Auth:
+              Authorizer: AWS_IAM
 
   SQSLambda:
     Type: AWS::Serverless::Function
