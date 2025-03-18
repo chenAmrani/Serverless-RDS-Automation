@@ -51,6 +51,10 @@ def generate_terraform_code(message_body):
 
     create_secret(secret_name, password)
 
+    auto_delete_tag = ''
+    if message_body['environment'].lower() == 'prod':
+        auto_delete_tag = 'AutoDelete = "True"\n'
+
     return f"""
 data "aws_secretsmanager_secret" "db_password" {{
   name = "{secret_name}"
@@ -71,6 +75,7 @@ resource "aws_db_instance" "{message_body['databaseName']}" {{
 
   tags = {{
     Environment = "{message_body['environment'].capitalize()}"
+    {auto_delete_tag}
   }}
 }}
 """

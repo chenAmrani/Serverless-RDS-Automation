@@ -64,7 +64,6 @@ Resources:
       Runtime: python3.11
       Environment:
         Variables:
-          RDS_INSTANCE_IDENTIFIER: "my-rds-instance"
           GITHUB_TOKEN: "{{resolve:secretsmanager:GITHUB_TOKEN}}"
       Policies:
         - AWSLambdaBasicExecutionRole
@@ -90,15 +89,20 @@ Resources:
       Runtime: python3.11
       Environment:
         Variables:
-          RDS_INSTANCE_IDENTIFIER: "my-rds-instance"
+          RETENTION_PERIOD: "0.0035"  #5/1440 min in day  
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonRDSFullAccess
+        - Statement:   
+            Effect: Allow
+            Action: 
+              - secretsmanager:GetSecretValue
+            Resource: "*"
       Events:
         ScheduledEvent:
           Type: Schedule
           Properties:
-            Schedule: "rate(5 minutes)" 
+            Schedule: "rate(1 hour)" 
             Enabled: true
 
 Outputs:

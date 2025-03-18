@@ -8,7 +8,7 @@ logger.setLevel(logging.INFO)
 
 rds_client = boto3.client('rds')
 
-RETENTION_PERIOD = int(os.getenv('RETENTION_PERIOD', 7))
+RETENTION_PERIOD = int(os.getenv('RETENTION_PERIOD', 5))
 
 def lambda_handler(event, context):
     try:
@@ -20,16 +20,34 @@ def lambda_handler(event, context):
             instance_id = instance['DBInstanceIdentifier']
             creation_date = instance['InstanceCreateTime'].replace(tzinfo=None)
 
-            if creation_date < max_creation_date:
-                logger.info(f"🗑️ Deleting RDS instance: {instance_id}")
-                rds_client.delete_db_instance(
-                    DBInstanceIdentifier=instance_id,
-                    SkipFinalSnapshot=True,
-                    DeleteAutomatedBackups=True
-                )
-                logger.info(f"✅ Successfully started deletion for: {instance_id}")
+            tags_response = rds_client.list_tags_for_resource(
+                ResourceName=instance['DBInstanceArn']
+            )
+            tags = tags_response['TagList']
+            environment = next(
+                (tag['Value'] for tag in tags if tag['Key'] == 'Environment'), 
+                'Unknown'
+            )
+
+            if (
+                environment in ['Dev', 'Test'] or 
+                (environment == 'Prod' and any(
+                    tag['Key'] == 'AutoDelete' and tag['Value'] == 'True' 
+                    for tag in tags
+                ))
+            ):
+                if creation_date < max_creation_date:
+                    logger.info(f"🗑️ Deleting RDS instance: {instance_id} (Environment: {environment})")
+                    rds_client.delete_db_instance(
+                        DBInstanceIdentifier=instance_id,
+                        SkipFinalSnapshot=True,
+                        DeleteAutomatedBackups=True
+                    )
+                    logger.info(f"✅ Successfully started deletion for: {instance_id}")
+                else:
+                    logger.info(f"⏳ Skipping deletion for {instance_id} (Created on {creation_date})")
             else:
-                logger.info(f"⏳ Skipping deletion for {instance_id} (Created on {creation_date})")
+                logger.info(f"🚫 Skipping deletion for {instance_id} (Environment: {environment})")
 
         return {"status": "Success", "message": "Cleanup process completed."}
 
