@@ -29,18 +29,26 @@ def generate_terraform_code(message_body):
     instance_class = "db.t3.micro" if message_body['environment'].lower() == "dev" else "db.t3.medium"
     allocated_storage = 20 if message_body['environment'].lower() == "dev" else 100
 
+    def generate_terraform_code(message_body):
+    instance_class = "db.t3.micro" if message_body['environment'].lower() == "dev" else "db.t3.medium"
+    allocated_storage = 20 if message_body['environment'].lower() == "dev" else 100
+
     return f"""
 resource "aws_db_instance" "{message_body['databaseName']}" {{
-  identifier = "{message_body['databaseName']}"
-  engine = "{message_body['engine'].lower()}"
-  instance_class = "{instance_class}"
+  identifier       = "{message_body['databaseName']}"
+  engine           = "{message_body['engine'].lower()}"
+  instance_class   = "{instance_class}"
   allocated_storage = {allocated_storage}
+  
+  username         = "admin"           
+  password         = "examplePass" 
 
   tags = {{
     Environment = "{message_body['environment'].capitalize()}"
   }}
-  }}
+}}
 """
+
 def create_github_pr(message_body):
     repo_name = "chenAmrani/Serverless-RDS-Automation"
     branch_name = f"feature/create-{message_body['databaseName']}"
