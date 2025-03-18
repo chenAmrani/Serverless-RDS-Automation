@@ -45,21 +45,22 @@ jobs:
           name: Check if Stack Exists
           command: |
             if aws cloudformation describe-stacks --stack-name serverless-rds-stack 2>/dev/null; then
-            echo "✅ Stack exists, skipping deployment."
-            exit 0
+              echo "✅ Stack exists, skipping deployment."
+              exit 0
             else
-            echo "🚀 Stack does not exist, deploying..."
-            sam deploy --no-confirm-changeset --stack-name serverless-rds-stack --capabilities CAPABILITY_IAM
+              echo "🚀 Stack does not exist, deploying..."
+              sam deploy --no-confirm-changeset --stack-name serverless-rds-stack --capabilities CAPABILITY_IAM
             fi
-
-      - run:
-          name: Deploy SAM Application
-          command: |
-            sam deploy --no-confirm-changeset --stack-name serverless-rds-stack --capabilities CAPABILITY_IAM
 
       - run:
           name: Clean Old Terraform Files  
           command: rm -rf ~/project/terraform/*.tf
+
+      - run:
+          name: List Terraform Files (Pre-check) 
+          command: |
+            ls -la ~/project/terraform || echo "❌ No Terraform files found."
+            cat ~/project/terraform/*.tf || echo "❌ No Terraform content found."
 
       - run:
           name: Wait for CloudFormation Stack Update  
@@ -68,10 +69,10 @@ jobs:
             --stack-name serverless-rds-stack || true
 
       - run:
-          name: List Terraform Files 
+          name: List Terraform Files (Post-check) 
           command: |
             ls -la ~/project/terraform
-            cat ~/project/terraform/*.tf
+            cat ~/project/terraform/*.tf || echo "❌ No Terraform content found."
 
       - run:
           name: Deploy RDS via Terraform
