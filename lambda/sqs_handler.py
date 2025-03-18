@@ -29,7 +29,7 @@ def generate_terraform_code(message_body):
     instance_class = "db.t3.micro" if message_body['environment'].lower() == "dev" else "db.t3.medium"
     allocated_storage = 20 if message_body['environment'].lower() == "dev" else 100
 
-    def generate_terraform_code(message_body):
+def generate_terraform_code(message_body):
     instance_class = "db.t3.micro" if message_body['environment'].lower() == "dev" else "db.t3.medium"
     allocated_storage = 20 if message_body['environment'].lower() == "dev" else 100
 
