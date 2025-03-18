@@ -21,6 +21,14 @@ jobs:
             sudo apt-get update && sudo apt-get install terraform awscli
 
       - run:
+          name: Install Python 3.11
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y python3.11 python3.11-venv python3.11-dev
+            sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+            python3 --version  # לוודא שהגרסה היא Python 3.11
+
+      - run:
           name: Install AWS SAM CLI
           command: |
             curl -Lo sam-installation.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
