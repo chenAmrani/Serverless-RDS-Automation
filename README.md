@@ -1,7 +1,5 @@
 # Serverless RDS Cluster Automation
 
-![Blank diagram](https://github.com/user-attachments/assets/dd4d898d-bfd5-43b1-ac66-788b80cb8a75)
-
 ## Overview
 
 **This project** provides an automated solution for provisioning Amazon RDS clusters using **AWS serverless architecture** and **Infrastructure as Code (IaC)**. The automation is designed for developers to easily request RDS clusters via an API endpoint, supporting:
@@ -9,6 +7,9 @@
 - **Database Name**
 - **Database Engine** (MySQL, PostgreSQL)
 - **Environment** (Dev/Prod) — determines cluster size
+
+![Blank diagram](https://github.com/user-attachments/assets/dd4d898d-bfd5-43b1-ac66-788b80cb8a75)
+---
 
 ### Key Features
 
