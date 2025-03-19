@@ -88,29 +88,26 @@ jobs:
               exit 1
             fi
 
-
       - run:
           name: Extract DB Name from Terraform Output
           command: |
             cd ~/project/infra
             terraform init
-            DB_NAME=$(terraform output -raw rds_db_name | sed 's/\x1b\[[0-9;]*m//g')
+            DB_NAME=$(terraform output -raw rds_db_name)
             echo "DB_NAME=$DB_NAME" >> $BASH_ENV
-
-
       - run:
-          name: Deploy RDS via Terraform
-          command: |
-            cd ~/project/infra  
-            terraform init
-            terraform plan -out=tfplan \
-              -var="db_name=$DB_NAME" \
-              -var="db_engine=MySQL" \
-              -var="environment=Dev" \
-              -var="secret_name=mysql/$DB_NAME/DB_CREDENTIALS" \
-              -var="secret_id=db_password_${DB_NAME}"
-            terraform apply -auto-approve tfplan
-
+            name: Deploy RDS via Terraform
+            command: |
+              cd ~/project/infra  
+              terraform init
+              terraform plan -out=tfplan \
+                -var="db_name=$(terraform output -raw rds_db_name)" \
+                -var="db_engine=MySQL" \
+                -var="environment=Dev" \
+                -var="secret_name=mysql/$(terraform output -raw rds_db_name)/DB_CREDENTIALS" \
+                -var="secret_id=db_password_$(terraform output -raw rds_db_name)"
+              terraform apply -auto-approve tfplan
+              
 workflows:
   version: 2
   deploy_on_merge:
