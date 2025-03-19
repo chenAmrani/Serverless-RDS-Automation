@@ -83,7 +83,6 @@ def create_terraform_tfvars(message_body):
     try:
         with open("/tmp/terraform.tfvars", "w") as f:
             f.write(f'db_name="{message_body["databaseName"]}"\n')
-            logger.info("namee: message_body["databaseName"]")
             f.write(f'db_engine="{message_body["engine"].lower()}"\n')
             f.write(f'environment="{message_body["environment"].capitalize()}"\n')
             f.write(f'secret_name="mysql/{message_body["databaseName"]}/DB_CREDENTIALS"\n')
