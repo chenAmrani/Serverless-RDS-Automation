@@ -7,8 +7,6 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
-    Auth:
-      DefaultAuthorizer: AWS_IAM
 
   MyTopic:
     Type: AWS::SNS::Topic
@@ -58,8 +56,6 @@ Resources:
             RestApiId: !Ref ServerlessApi
             Path: /publish
             Method: POST
-            Auth:
-              Authorizer: AWS_IAM
 
   SQSLambda:
     Type: AWS::Serverless::Function
@@ -93,7 +89,7 @@ Resources:
       Runtime: python3.11
       Environment:
         Variables:
-          RETENTION_PERIOD: "3"    
+          RETENTION_PERIOD: "0.0035"  #5/1440 min in day  
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonRDSFullAccess
