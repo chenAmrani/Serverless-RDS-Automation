@@ -44,12 +44,11 @@ jobs:
       - run:
           name: Create terraform.tfvars from PR config
           command: |
-            cd ~/project/infra
-            echo "db_name=\"$(grep 'default' config.tf | grep 'db_name' | cut -d '"' -f2)\"" > terraform.tfvars
-            echo "db_engine=\"$(grep 'default' config.tf | grep 'db_engine' | cut -d '"' -f2)\"" >> terraform.tfvars
-            echo "environment=\"$(grep 'default' config.tf | grep 'environment' | cut -d '"' -f2)\"" >> terraform.tfvars
-            echo "secret_name=\"mysql/$(grep 'default' config.tf | grep 'db_name' | cut -d '"' -f2)/DB_CREDENTIALS\"" >> terraform.tfvars
-            echo "secret_id=\"db_password_$(grep 'default' config.tf | grep 'db_name' | cut -d '"' -f2)\"" >> terraform.tfvars
+            echo "db_name=\"$(grep 'variable "db_name"' -A 2 config.tf | grep 'default' | cut -d '"' -f2)\"" > terraform.tfvars
+            echo "db_engine=\"$(grep 'variable "db_engine"' -A 2 config.tf | grep 'default' | cut -d '"' -f2)\"" >> terraform.tfvars
+            echo "environment=\"$(grep 'variable "environment"' -A 2 config.tf | grep 'default' | cut -d '"' -f2)\"" >> terraform.tfvars
+            echo "secret_name=\"mysql/$(grep 'variable "db_name"' -A 2 config.tf | grep 'default' | cut -d '"' -f2)/DB_CREDENTIALS\"" >> terraform.tfvars
+            echo "secret_id=\"db_password_$(grep 'variable "db_name"' -A 2 config.tf | grep 'default' | cut -d '"' -f2)\"" >> terraform.tfvars
 
       - run:
           name: Deploy RDS via Terraform
