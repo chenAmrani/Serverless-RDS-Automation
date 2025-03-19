@@ -1,9 +1,6 @@
 import json
 import boto3
 import logging
-import requests
-import base64
-import os
 from github import Github  
 import random
 import string  
