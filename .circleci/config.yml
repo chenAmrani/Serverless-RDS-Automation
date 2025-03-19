@@ -88,7 +88,7 @@ jobs:
       - run:
           name: Deploy RDS via Terraform
           command: |
-            cd ~/project/terraform  
+            cd ~/project/infra  
             terraform init
             terraform apply -auto-approve \
               -var="db_name=$DB_NAME" \
