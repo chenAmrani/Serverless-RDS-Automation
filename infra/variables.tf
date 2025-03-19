@@ -1,13 +1,24 @@
-variable "db_name" {}
-variable "db_engine" {}
-variable "environment" {}
-variable "secret_name" {}
-variable "secret_id" {}
-
-variable "db_username" {
-  default = "admin"
+variable "db_name" {
+  description = "Database name for the RDS instance"
+  type        = string
 }
 
-variable "db_password" {
-  default = "StrongPassword1234"
+variable "db_engine" {
+  description = "Database engine type (e.g., MySQL, PostgreSQL)"
+  type        = string
+}
+
+variable "environment" {
+  description = "Environment type (e.g., Dev, Prod)"
+  type        = string
+}
+
+variable "secret_name" {
+  description = "The name of the Secrets Manager entry for this database"
+  type        = string
+}
+
+variable "secret_id" {
+  description = "Unique identifier for the AWS Secrets Manager entry"
+  type        = string
 }
