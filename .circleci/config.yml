@@ -58,13 +58,10 @@ jobs:
             fi
 
       - run:
-          name: Extract DB Name 
+          name: Extract DB Name from Branch
           command: |
-            cd ~/project/infra
-            terraform init
-            DB_NAME=$(terraform output -raw rds_db_name)
-            echo "DB_NAME=$DB_NAME" >> $BASH_ENV
-
+            DB_NAME=$(echo $CIRCLE_BRANCH | sed 's/feature\///' | sed 's/create-//')
+            echo "DB_NAME=$DB_NAME" >> $BASH_ENV  
 
       - run:
           name: Wait for CloudFormation Stack Update  
@@ -87,13 +84,7 @@ jobs:
               echo "❌ Stack not found or an issue occurred."
               exit 1
             fi
-
-      - run:
-          name: Print DB_NAME for Debugging
-          command: |
-            source $BASH_ENV
-            echo "🔍 DB_NAME value: '$DB_NAME'"
-
+            
       - run:
           name: Deploy RDS via Terraform
           command: |
