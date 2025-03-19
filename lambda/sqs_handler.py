@@ -32,6 +32,17 @@ def generate_password(length=12):
     characters = string.ascii_letters + string.digits + "!@#$%^&*"
     return ''.join(random.choices(characters, k=length))
 
+def get_secret(secret_name):
+    """Fetch password directly from AWS Secrets Manager"""
+    try:
+        response = secrets_manager_client.get_secret_value(SecretId=secret_name)
+        secret_value = json.loads(response['SecretString'])['password']
+        logger.info(f"✅ Successfully retrieved secret: {secret_name}")
+        return secret_value
+    except Exception as e:
+        logger.error(f"❌ Error retrieving secret {secret_name}: {e}")
+        raise
+
 def create_secret(secret_name, password):
     try:
         secrets_manager_client.create_secret(
@@ -47,20 +58,13 @@ def generate_terraform_code(message_body):
     allocated_storage = 20 if message_body['environment'].lower() == "dev" else 100
 
     secret_name = f"mysql/{message_body['databaseName']}/DB_CREDENTIALS"
-    password = generate_password()
-
-    create_secret(secret_name, password)
+    password = get_secret(secret_name)  # קריאה ישירה ל-Secrets Manager
 
     auto_delete_tag = ''
     if message_body['environment'].lower() == 'prod':
         auto_delete_tag = 'AutoDelete = "True"\n'
 
     return f"""
-module "secrets" {{
-  source = "./modules/secrets"
-  secret_name = "{secret_name}"
-}}
-
 resource "aws_db_instance" "{message_body['databaseName']}" {{
   identifier       = "{message_body['databaseName']}"
   engine           = "{message_body['engine'].lower()}"
@@ -68,7 +72,7 @@ resource "aws_db_instance" "{message_body['databaseName']}" {{
   allocated_storage = {allocated_storage}
 
   username         = "admin"           
-  password         = jsondecode(module.secrets.latest.secret_string)["password"]
+  password         = "{password}"  # שימוש בסיסמה ישירות מ-Secrets Manager
 
   tags = {{
     Environment = "{message_body['environment'].capitalize()}"
