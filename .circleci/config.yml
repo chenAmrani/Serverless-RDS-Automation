@@ -92,9 +92,10 @@ jobs:
             terraform init
             terraform apply -auto-approve \
               -var="db_name=$DB_NAME" \
+              -var="db_engine=MySQL" \
+              -var="environment=Dev" \
               -var="secret_name=mysql/$DB_NAME/DB_CREDENTIALS" \
-              -var="secret_id=db_password_${DB_NAME}" \
-              -var-file=../infra/variables.tf
+              -var="secret_id=db_password_${DB_NAME}"
 
 workflows:
   version: 2
