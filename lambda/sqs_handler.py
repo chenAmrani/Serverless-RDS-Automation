@@ -147,17 +147,17 @@ def lambda_handler(event, context):
 
         logger.info(f"✅ Received database request in original format: {message_body}")
 
-        try:
-            create_terraform_tfvars(message_body)
-            upload_tfvars_to_s3("aws-sam-cli-managed-default-samclisourcebucket-ghfbaxo8g1tn", "serverless-rds/terraform.tfvars")
-            pr_url = create_github_pr(message_body)
-            logger.info(f"🚀 PR created successfully: {pr_url}")
-        except Exception as e:
-            logger.error(f"❌ Error creating PR: {e}")
-            return {
-                "statusCode": 500,
-                "body": json.dumps(f"Error creating PR: {str(e)}")
-            }
+     
+        create_terraform_tfvars(message_body)
+        upload_tfvars_to_s3("aws-sam-cli-managed-default-samclisourcebucket-ghfbaxo8g1tn", "serverless-rds/terraform.tfvars")
+        pr_url = create_github_pr(message_body)
+        logger.info(f"🚀 PR created successfully: {pr_url}")
+       
+            
+        return {
+            "statusCode": 500,
+            "body": json.dumps(f"Error creating PR: {str(e)}")
+        }
 
     return {
         "statusCode": 200,
