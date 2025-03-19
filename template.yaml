@@ -76,6 +76,9 @@ Resources:
               - secretsmanager:GetSecretValue
               - secretsmanager:CreateSecret     
               - secretsmanager:PutSecretValue
+              - cloudformation:ListStacks
+              - cloudformation:DescribeStacks
+              - cloudformation:Wait
             Resource: "*"
       Events:
         SQSEvent:
