@@ -14,34 +14,23 @@ logger.setLevel(logging.INFO)
 rds_client = boto3.client('rds')
 secrets_manager_client = boto3.client('secretsmanager')
 
-def get_github_token():
-    client = boto3.client('secretsmanager')
-    secret_name = "GITHUB_TOKEN"
-    try:
-        response = client.get_secret_value(SecretId=secret_name)
-        secret_value = json.loads(response['SecretString'])['GITHUB_TOKEN'] 
-        logger.info(f"✅ Successfully retrieved GitHub Token: {secret_value[:5]}******")  
-        return secret_value
-    except Exception as e:
-        logger.error(f"❌ Error retrieving GitHub token: {e}")
-        raise
-
-github_token = get_github_token()
-
-def generate_password(length=12):
-    characters = string.ascii_letters + string.digits + "!@#$%^&*"
-    return ''.join(random.choices(characters, k=length))
-
-def get_secret(secret_name):
-    """Fetch password directly from AWS Secrets Manager"""
+def get_secret(secret_name, key=None):
     try:
         response = secrets_manager_client.get_secret_value(SecretId=secret_name)
-        secret_value = json.loads(response['SecretString'])['password']
+        secret_value = json.loads(response['SecretString'])
+
+        if key:
+            secret_value = secret_value.get(key)
+
         logger.info(f"✅ Successfully retrieved secret: {secret_name}")
         return secret_value
     except Exception as e:
         logger.error(f"❌ Error retrieving secret {secret_name}: {e}")
         raise
+
+def generate_password(length=12):
+    characters = string.ascii_letters + string.digits + "!@#$%^&*"
+    return ''.join(random.choices(characters, k=length))
 
 def create_secret(secret_name, password):
     try:
@@ -58,7 +47,7 @@ def generate_terraform_code(message_body):
     allocated_storage = 20 if message_body['environment'].lower() == "dev" else 100
 
     secret_name = f"mysql/{message_body['databaseName']}/DB_CREDENTIALS"
-    password = get_secret(secret_name)  # קריאה ישירה ל-Secrets Manager
+    password = get_secret(secret_name, "password")   
 
     auto_delete_tag = ''
     if message_body['environment'].lower() == 'prod':
@@ -71,8 +60,8 @@ resource "aws_db_instance" "{message_body['databaseName']}" {{
   instance_class   = "{instance_class}"
   allocated_storage = {allocated_storage}
 
-  username         = "admin"           
-  password         = "{password}"  # שימוש בסיסמה ישירות מ-Secrets Manager
+  username         = "admin"
+  password         = "{password}
 
   tags = {{
     Environment = "{message_body['environment'].capitalize()}"
@@ -80,6 +69,11 @@ resource "aws_db_instance" "{message_body['databaseName']}" {{
   }}
 }}
 """
+
+def get_github_token():
+    return get_secret("GITHUB_TOKEN", "GITHUB_TOKEN")  
+
+github_token = get_github_token()
 
 def create_github_pr(message_body):
     repo_name = "chenAmrani/Serverless-RDS-Automation"
