@@ -75,7 +75,7 @@ Run the following command to deploy the AWS SAM stack:
 
 ```bash
 sam build
-sam deploy --guided
+sam deploy --guided --stack-name <serverless-rds-stack>
 ```
 
 ### Step 5: CircleCI Pipeline (Already Configured)
