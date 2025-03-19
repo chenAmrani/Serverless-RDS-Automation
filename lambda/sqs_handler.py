@@ -96,13 +96,6 @@ def create_terraform_tfvars(message_body):
         logger.error(f"❌ Error creating terraform.tfvars: {e}")
         raise
 
-def upload_tfvars_to_s3(bucket_name, s3_key="/serverless-rds/terraform.tfvars"):
-    try:
-        s3_client.upload_file("/tmp/terraform.tfvars", bucket_name, s3_key)
-        logger.info(f"✅ Uploaded /tmp/terraform.tfvars to s3://{bucket_name}{s3_key}")
-    except Exception as e:
-        logger.error(f"❌ Error uploading terraform.tfvars to S3: {e}")
-        raise
 
 def create_github_pr(message_body):
     repo_name = "chenAmrani/Serverless-RDS-Automation"
@@ -131,6 +124,14 @@ def create_github_pr(message_body):
 
     logger.info(f"✅ PR created successfully: {pr.html_url}")
     return pr.html_url
+
+def upload_tfvars_to_s3(bucket_name, s3_key="/serverless-rds/terraform.tfvars"):
+    try:
+        s3_client.upload_file("/tmp/terraform.tfvars", bucket_name, s3_key)
+        logger.info(f"✅ Uploaded /tmp/terraform.tfvars to s3://{bucket_name}{s3_key}")
+    except Exception as e:
+        logger.error(f"❌ Error uploading terraform.tfvars to S3: {e}")
+        raise
 
 def lambda_handler(event, context):
     for record in event['Records']:
