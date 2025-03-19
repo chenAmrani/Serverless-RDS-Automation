@@ -14,35 +14,12 @@ Resources:
   MyQueue:
     Type: AWS::SQS::Queue
 
-  MyQueuePolicy:
-    Type: AWS::SQS::QueuePolicy
-    Properties:
-      Queues:
-        - !Ref MyQueue
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: "sns.amazonaws.com"
-            Action: "SQS:SendMessage"
-            Resource: !GetAtt MyQueue.Arn
-            Condition:
-              ArnEquals:
-                aws:SourceArn: !Ref MyTopic
-
-  MyQueueSubscription:
-    Type: AWS::SNS::Subscription
-    Properties:
-      Endpoint: !GetAtt MyQueue.Arn
-      Protocol: sqs
-      TopicArn: !Ref MyTopic
-
   SNSPublishLambda:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: lambda/sns_handler.lambda_handler
+      Handler: sns_handler.lambda_handler
       Runtime: python3.11
+      CodeUri: ./lambda_code/
       Environment:
         Variables:
           TOPIC_ARN: !Ref MyTopic
@@ -60,8 +37,9 @@ Resources:
   SQSLambda:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: lambda/sqs_handler.lambda_handler
+      Handler: sqs_handler.lambda_handler
       Runtime: python3.11
+      CodeUri: ./lambda_code/
       Environment:
         Variables:
           GITHUB_TOKEN: "{{resolve:secretsmanager:GITHUB_TOKEN}}"
@@ -85,11 +63,12 @@ Resources:
   CleanupRDSLambda:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: lambda/cleanup_rds.lambda_handler
+      Handler: cleanup_rds.lambda_handler
       Runtime: python3.11
+      CodeUri: ./lambda_code/
       Environment:
         Variables:
-          RETENTION_PERIOD: "0.0035"  #5/1440 min in day  
+          RETENTION_PERIOD: "0.0035"  
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonRDSFullAccess
