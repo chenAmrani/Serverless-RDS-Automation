@@ -27,9 +27,19 @@ def get_github_token():
 
 github_token = get_github_token()
 
-def generate_password(length=12):
-    characters = string.ascii_letters + string.digits + "!@#$%^&*"
-    return ''.join(random.choices(characters, k=length))
+def generate_password(length=16):
+    characters = string.ascii_letters + string.digits + "@/ "
+
+    password = [
+        random.choice(string.ascii_uppercase),  
+        random.choice(string.ascii_lowercase),  
+        random.choice(string.digits),           
+        random.choice("@/ ")                    
+    ]
+
+    password += random.choices(characters, k=length-4)
+    random.shuffle(password)
+    return ''.join(password)
 
 def create_secret(secret_name, password):
     try:
