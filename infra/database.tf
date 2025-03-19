@@ -15,7 +15,7 @@ resource "aws_db_instance" "rds_instance" {
   db_name                = var.db_name
   username               = "admin"
   password = jsondecode(data.aws_secretsmanager_secret_version.latest.secret_string)["password"]
-  db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group[0].name
+  db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   skip_final_snapshot    = true
 }

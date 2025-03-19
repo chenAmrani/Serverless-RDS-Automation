@@ -31,18 +31,9 @@ resource "aws_security_group" "rds_sg" {
   }
 }
 
-# resource "aws_db_subnet_group" "rds_subnet_group" {
-#   name       = "rds-subnet-group"
-#   subnet_ids = data.aws_subnets.default_subnets.ids
-# }
-
-data "aws_db_subnet_group" "existing_rds_subnet_group" {
-  name = "rds-subnet-group"
-}
-
 resource "aws_db_subnet_group" "rds_subnet_group" {
-  count       = length(data.aws_db_subnet_group.existing_rds_subnet_group.id) == 0 ? 1 : 0
-  name        = "rds-subnet-group-${var.environment}"
-  description = "Managed by Terraform - ${var.environment} environment"
-  subnet_ids  = ["subnet-0037f54547b27b174", "subnet-02e7d7a43a2e7962c", "subnet-030d4d86c73b30974"]
+  name       = "rds-subnet-group"
+  subnet_ids = data.aws_subnets.default_subnets.ids
 }
+
+

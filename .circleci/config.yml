@@ -52,6 +52,7 @@ jobs:
           command: |
             cd ~/project/infra
             terraform init
+            terraform import aws_db_subnet_group.rds_subnet_group rds-subnet-group
             terraform plan -out=tfplan -var-file="terraform.tfvars"
             terraform apply -refresh-only -auto-approve tfplan
             
