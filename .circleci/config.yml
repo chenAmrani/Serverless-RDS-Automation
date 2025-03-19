@@ -22,20 +22,68 @@ jobs:
             sudo apt-get update && sudo apt-get install terraform awscli
 
       - run:
-          name: Extract DB Name from Branch
+          name: Install Python 3.11
           command: |
-            DB_NAME=$(echo $CIRCLE_BRANCH | sed 's/feature\///' | sed 's/create-//')
-            echo "DB_NAME=$DB_NAME" >> $BASH_ENV
+            sudo apt-get update
+            sudo apt-get install -y python3.11 python3.11-venv python3.11-dev
+            sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+            python3 --version  
+
+      - run:
+          name: Install AWS SAM CLI
+          command: |
+            curl -Lo sam-installation.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
+            unzip sam-installation.zip -d sam-installation
+            sudo ./sam-installation/install
+
+      - run:
+          name: Build SAM Application
+          command: |
+            sam build
+
+      - run:
+          name: Check if Stack Exists
+          command: |
+            if aws cloudformation describe-stacks --stack-name serverless-rds-stack 2>/dev/null; then
+              echo "✅ Stack exists, skipping deployment."
+              exit 0
+            else
+              echo "🚀 Stack does not exist, deploying..."
+              sam deploy --no-confirm-changeset --stack-name serverless-rds-stack --capabilities CAPABILITY_IAM
+            fi
+
+      - run:
+          name: Verify Secrets Manager Entry
+          command: |
+            aws secretsmanager get-secret-value \
+            --secret-id "mysql/exampleDB/DB_CREDENTIALS" || \
+            echo "❌ Secret not found. Please investigate."
+
+      - run:
+          name: List Terraform Files (Pre-check) 
+          command: |
+            ls -la ~/project/terraform
+            cat ~/project/terraform/*.tf || echo "❌ No Terraform content found."
+
+      - run:
+          name: Wait for CloudFormation Stack Update  
+          command: |
+            aws cloudformation wait stack-update-complete \
+            --stack-name serverless-rds-stack || true
+
+      - run:
+          name: List Terraform Files (Post-check) 
+          command: |
+            ls -la ~/project/terraform
+            cat ~/project/terraform/*.tf || echo "❌ No Terraform content found."
 
       - run:
           name: Deploy RDS via Terraform
           command: |
             cd ~/project/terraform  
             terraform init
-            terraform apply -auto-approve \
-            -var="db_name=$DB_NAME" \
-            -var="secret_name=mysql/$DB_NAME/DB_CREDENTIALS"
-
+            terraform apply -auto-approve
+            
 workflows:
   version: 2
   deploy_on_merge:
