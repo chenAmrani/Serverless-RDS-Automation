@@ -10,7 +10,8 @@ logger.setLevel(logging.INFO)
 
 rds_client = boto3.client('rds')
 secrets_manager_client = boto3.client('secretsmanager')
-s3_client = boto3.client('s3') 
+s3_client = boto3.client('s3')
+bucket_name="aws-sam-cli-managed-default-samclisourcebucket-ghfbaxo8g1tn"
 
 def get_github_token():
     client = boto3.client('secretsmanager')
@@ -79,7 +80,6 @@ resource "aws_db_instance" "{message_body['databaseName']}" {{
 """
 
 def create_terraform_tfvars(message_body):
-    
     try:
         with open("/tmp/terraform.tfvars", "w") as f:
             f.write(f'db_name="{message_body["databaseName"]}"\n')
@@ -88,19 +88,18 @@ def create_terraform_tfvars(message_body):
             f.write(f'secret_name="mysql/{message_body["databaseName"]}/DB_CREDENTIALS"\n')
             f.write(f'secret_id="db_password_{message_body["databaseName"]}"\n')
 
-        logger.info("✅ terraform.tfvars file created successfully. Contents:")
+        logger.info(f"✅ terraform.tfvars file created successfully with contents:\n")
         with open("/tmp/terraform.tfvars", "r") as f:
-            logger.info(f.read())
+            logger.info(f.read())  
 
     except Exception as e:
         logger.error(f"❌ Error creating terraform.tfvars: {e}")
         raise
 
-def upload_tfvars_to_s3(bucket_name, s3_key="serverless-rds/terraform.tfvars"):
-   
+def upload_tfvars_to_s3(bucket_name, s3_key="/serverless-rds/terraform.tfvars"):
     try:
         s3_client.upload_file("/tmp/terraform.tfvars", bucket_name, s3_key)
-        logger.info(f"✅ Uploaded /tmp/terraform.tfvars to s3://{bucket_name}/{s3_key}")
+        logger.info(f"✅ Uploaded /tmp/terraform.tfvars to s3://{bucket_name}{s3_key}")
     except Exception as e:
         logger.error(f"❌ Error uploading terraform.tfvars to S3: {e}")
         raise
@@ -134,8 +133,6 @@ def create_github_pr(message_body):
     return pr.html_url
 
 def lambda_handler(event, context):
-    bucket_name = "aws-sam-cli-managed-default-samclisourcebucket-ghfbaxo8g1tn"
-
     for record in event['Records']:
         sns_message = json.loads(record['body'])['Message']  
         message_body = json.loads(sns_message)
@@ -144,12 +141,9 @@ def lambda_handler(event, context):
 
         try:
             create_terraform_tfvars(message_body)
-            
-            upload_tfvars_to_s3(bucket_name, "serverless-rds/terraform.tfvars")
-            
+            upload_tfvars_to_s3("aws-sam-cli-managed-default-samclisourcebucket-ghfbaxo8g1tn", "serverless-rds/terraform.tfvars")
             pr_url = create_github_pr(message_body)
             logger.info(f"🚀 PR created successfully: {pr_url}")
-
         except Exception as e:
             logger.error(f"❌ Error creating PR: {e}")
             return {
