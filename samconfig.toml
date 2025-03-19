@@ -1,8 +1,8 @@
 version = 0.1
 [default.deploy.parameters]
-stack_name = "serv"
+stack_name = "ser"
 resolve_s3 = true
-s3_prefix = "serv"
+s3_prefix = "ser"
 region = "us-east-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
