@@ -90,12 +90,13 @@ jobs:
           command: |
             cd ~/project/infra  
             terraform init
-            terraform apply -auto-approve \
+            terraform plan -out=tfplan \
               -var="db_name=$DB_NAME" \
-              -var="db_engine=MySQL" \            
-              -var="environment=Dev" \            
+              -var="db_engine=MySQL" \
+              -var="environment=Dev" \
               -var="secret_name=mysql/$DB_NAME/DB_CREDENTIALS" \
               -var="secret_id=db_password_${DB_NAME}"
+            terraform apply -auto-approve tfplan
 
 workflows:
   version: 2
