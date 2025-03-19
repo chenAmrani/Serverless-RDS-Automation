@@ -84,16 +84,20 @@ jobs:
               echo "❌ Stack not found or an issue occurred."
               exit 1
             fi
-            
+
+      - run:
+        name: Print DB_NAME for Debugging
+        command: |
+          echo "🔍 DB_NAME value: $DB_NAME"
+
       - run:
           name: Deploy RDS via Terraform
           command: |
             cd ~/project/infra  
             terraform init
+            terraform init
             terraform apply -auto-approve \
               -var="db_name=$DB_NAME" \
-              -var="db_engine=MySQL" \
-              -var="environment=Dev" \
               -var="secret_name=mysql/$DB_NAME/DB_CREDENTIALS" \
               -var="secret_id=db_password_${DB_NAME}"
 
