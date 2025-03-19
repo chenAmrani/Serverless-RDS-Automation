@@ -48,8 +48,6 @@ git clone (https://github.com/chenAmrani/Serverless-RDS-Automation.git)
 cd serverless-rds-automation
 ```
 
-(*Note: Replace **`<repository_url>`** with your actual repository URL.*)
-
 ### Step 2: Install Dependencies
 
 Install Python dependencies using:
@@ -63,7 +61,7 @@ pip install -r requirements.txt
 In `samconfig.toml`, ensure the parameters match your environment:
 
 ```toml
-stack_name = "serverless-rds"
+stack_name = "serverless-rds-stack"
 region = "us-east-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
@@ -75,7 +73,7 @@ Run the following command to deploy the AWS SAM stack:
 
 ```bash
 sam build
-sam deploy --guided --stack-name <serverless-rds-stack>
+sam deploy --guided 
 ```
 
 ### Step 5: CircleCI Pipeline (Already Configured)
@@ -95,7 +93,7 @@ Send a POST request to the API Gateway endpoint with the following JSON body:
 
 ```json
 {
-  "databaseName": "exampleDB",
+  "databaseName": "exampledb",
   "databaseEngine": "MySQL",
   "environment": "Dev"
 }
@@ -138,5 +136,5 @@ Send a POST request to the API Gateway endpoint with the following JSON body:
 
 ## Author
 
-**Chen** - DevOps Engineer
+**Chen Amrani** - DevOps Engineer
 
