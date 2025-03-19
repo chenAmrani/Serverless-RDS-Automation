@@ -42,63 +42,21 @@ jobs:
             sam build
 
       - run:
-          name: Check if Stack Exists
+          name: Create terraform.tfvars from PR config
           command: |
-            STACK_NAME=$(aws cloudformation list-stacks \
-              --region us-east-1 \
-              --query "StackSummaries[?StackStatus=='CREATE_COMPLETE' || StackStatus=='UPDATE_COMPLETE'].StackName" \
-              --output text | grep "serverless-rds-stack" || true)
-
-            if [ -n "$STACK_NAME" ]; then
-              echo "✅ Stack exists ($STACK_NAME), skipping deployment."
-              exit 0
-            else
-              echo "🚀 Stack does not exist, deploying..."
-              sam deploy --no-confirm-changeset --stack-name serverless-rds-stack --capabilities CAPABILITY_IAM
-            fi
-
-      - run:
-          name: Extract DB Name from Branch
-          command: |
-            DB_NAME=$(echo $CIRCLE_BRANCH | sed 's/feature\///' | sed 's/create-//')
-            echo "DB_NAME=$DB_NAME" >> $BASH_ENV  
-
-
-      - run:
-          name: Wait for CloudFormation Stack Update  
-          command: |
-            STACK_NAME=$(aws cloudformation list-stacks \
-              --region us-east-1 \
-              --query "StackSummaries[?StackStatus=='CREATE_COMPLETE' || StackStatus=='UPDATE_COMPLETE'].StackName" \
-              --output text | grep "serverless-rds-stack" | sed 's/\x1b\[[0-9;]*m//g' || true)
-
-            echo "🔍 STACK_NAME found: '$STACK_NAME'"
-
-            if [ -n "$STACK_NAME" ]; then
-              if aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
-                --query "Stacks[0].StackStatus" --output text | grep -q "UPDATE_IN_PROGRESS"; then
-                  echo "⏳ Stack is updating... Waiting for completion."
-                  aws cloudformation wait stack-update-complete --stack-name "$STACK_NAME"
-                  echo "✅ Stack update complete."
-              else
-                  echo "✅ No update in progress. Skipping wait."
-              fi
-            else
-              echo "❌ Stack not found or an issue occurred."
-              exit 1
-            fi
+            cd ~/project/infra
+            echo "db_name=\"$(grep 'default' config.tf | grep 'db_name' | cut -d '"' -f2)\"" > terraform.tfvars
+            echo "db_engine=\"$(grep 'default' config.tf | grep 'db_engine' | cut -d '"' -f2)\"" >> terraform.tfvars
+            echo "environment=\"$(grep 'default' config.tf | grep 'environment' | cut -d '"' -f2)\"" >> terraform.tfvars
+            echo "secret_name=\"mysql/$(grep 'default' config.tf | grep 'db_name' | cut -d '"' -f2)/DB_CREDENTIALS\"" >> terraform.tfvars
+            echo "secret_id=\"db_password_$(grep 'default' config.tf | grep 'db_name' | cut -d '"' -f2)\"" >> terraform.tfvars
 
       - run:
           name: Deploy RDS via Terraform
           command: |
             cd ~/project/infra
             terraform init
-            terraform plan -out=tfplan \
-              -var="db_name=$(terraform output -raw rds_db_name)" \
-              -var="db_engine=MySQL" \
-              -var="environment=Dev" \
-              -var="secret_name=mysql/example52/DB_CREDENTIALS" \
-              -var="secret_id=db_password_$(terraform output -raw rds_db_name | tr -d '\r\n')"
+            terraform plan -out=tfplan -var-file="terraform.tfvars"
             terraform apply -auto-approve tfplan
 
 workflows:
