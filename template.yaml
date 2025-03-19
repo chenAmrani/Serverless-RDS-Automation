@@ -67,6 +67,7 @@ Resources:
           GITHUB_TOKEN: "{{resolve:secretsmanager:GITHUB_TOKEN}}"
       Policies:
         - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
         - SQSPollerPolicy:
             QueueName: !GetAtt MyQueue.QueueName
         - AmazonRDSFullAccess  
