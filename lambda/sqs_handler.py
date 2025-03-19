@@ -77,6 +77,23 @@ resource "aws_db_instance" "{message_body['databaseName']}" {{
 }}
 """
 
+def create_terraform_tfvars(message_body):
+    try:
+        with open("/tmp/terraform.tfvars", "w") as f:
+            f.write(f'db_name="{message_body["databaseName"]}"\n')
+            f.write(f'db_engine="{message_body["engine"].lower()}"\n')
+            f.write(f'environment="{message_body["environment"].capitalize()}"\n')
+            f.write(f'secret_name="mysql/{message_body["databaseName"]}/DB_CREDENTIALS"\n')
+            f.write(f'secret_id="db_password_{message_body["databaseName"]}"\n')
+
+        logger.info(f"✅ terraform.tfvars file created successfully with contents:\n")
+        with open("/tmp/terraform.tfvars", "r") as f:
+            logger.info(f.read())  
+
+    except Exception as e:
+        logger.error(f"❌ Error creating terraform.tfvars: {e}")
+        raise
+
 def create_github_pr(message_body):
     repo_name = "chenAmrani/Serverless-RDS-Automation"
     branch_name = f"feature/create-{message_body['databaseName']}"
@@ -113,6 +130,7 @@ def lambda_handler(event, context):
         logger.info(f"✅ Received database request in original format: {message_body}")
 
         try:
+            create_terraform_tfvars(message_body)
             pr_url = create_github_pr(message_body)
             logger.info(f"🚀 PR created successfully: {pr_url}")
         except Exception as e:

@@ -42,13 +42,10 @@ jobs:
             sam build
 
       - run:
-          name: Create terraform.tfvars from PR config
+          name: Download terraform.tfvars from S3
           command: |
-            echo "db_name=\"$(grep 'variable "db_name"' -A 2 config.tf | grep 'default' | cut -d '"' -f2)\"" > terraform.tfvars
-            echo "db_engine=\"$(grep 'variable "db_engine"' -A 2 config.tf | grep 'default' | cut -d '"' -f2)\"" >> terraform.tfvars
-            echo "environment=\"$(grep 'variable "environment"' -A 2 config.tf | grep 'default' | cut -d '"' -f2)\"" >> terraform.tfvars
-            echo "secret_name=\"mysql/$(grep 'variable "db_name"' -A 2 config.tf | grep 'default' | cut -d '"' -f2)/DB_CREDENTIALS\"" >> terraform.tfvars
-            echo "secret_id=\"db_password_$(grep 'variable "db_name"' -A 2 config.tf | grep 'default' | cut -d '"' -f2)\"" >> terraform.tfvars
+            aws s3 cp s3://your-s3-bucket-name/terraform.tfvars ~/project/infra/terraform.tfvars
+            cat ~/project/infra/terraform.tfvars  
 
       - run:
           name: Deploy RDS via Terraform
