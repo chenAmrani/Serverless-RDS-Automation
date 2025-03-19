@@ -1,11 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
-Parameters:
-  SecretName:
-    Type: String
-    Description: "Name of the secret in Secrets Manager"
-
 Resources:
 
   ServerlessApi:
@@ -76,7 +71,6 @@ Resources:
       Environment:
         Variables:
           GITHUB_TOKEN: "{{resolve:secretsmanager:GITHUB_TOKEN}}"
-          SECRET_NAME: !Ref SecretName
       Policies:
         - AWSLambdaBasicExecutionRole
         - SQSPollerPolicy:
