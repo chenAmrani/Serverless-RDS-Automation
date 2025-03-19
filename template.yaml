@@ -74,6 +74,8 @@ Resources:
             Effect: Allow
             Action: 
               - secretsmanager:GetSecretValue
+              - secretsmanager:CreateSecret     
+              - secretsmanager:PutSecretValue
             Resource: "*"
       Events:
         SQSEvent:
@@ -89,7 +91,7 @@ Resources:
       Runtime: python3.11
       Environment:
         Variables:
-          RETENTION_PERIOD: "0.0035"  #5/1440 min in day  
+          RETENTION_PERIOD: "3"    
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonRDSFullAccess
