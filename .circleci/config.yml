@@ -63,17 +63,6 @@ jobs:
             echo "DB_NAME=$DB_NAME" >> $BASH_ENV  
 
       - run:
-          name: Verify Secrets Manager Entry
-          command: |
-            DATABASE_NAME=$(grep -oP 'identifier\s*=\s*"\K[^"]+' ~/project/terraform/*.tf)
-            echo "Database Name found: $DATABASE_NAME"
-
-            aws secretsmanager get-secret-value \
-              --secret-id "mysql/${DATABASE_NAME}/DB_CREDENTIALS" \
-              --region us-east-1 || \
-            echo "❌ Secret not found for database ${DATABASE_NAME}. Please investigate."
-
-      - run:
           name: Wait for CloudFormation Stack Update  
           command: |
             STACK_NAME=$(aws cloudformation list-stacks \
