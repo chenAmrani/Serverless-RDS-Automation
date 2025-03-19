@@ -36,6 +36,9 @@ resource "aws_security_group" "rds_sg" {
 #   subnet_ids = data.aws_subnets.default_subnets.ids
 # }
 
+data "aws_db_subnet_group" "existing_rds_subnet_group" {
+  name = "rds-subnet-group"
+}
 
 resource "aws_db_subnet_group" "rds_subnet_group" {
   count       = length(data.aws_db_subnet_group.existing_rds_subnet_group.id) == 0 ? 1 : 0
