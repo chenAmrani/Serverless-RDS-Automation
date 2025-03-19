@@ -40,7 +40,11 @@ def create_secret(secret_name, password):
         )
         logger.info(f"✅ Secret '{secret_name}' created successfully.")
     except secrets_manager_client.exceptions.ResourceExistsException:
-        logger.warning(f"⚠️ Secret '{secret_name}' already exists. Skipping creation.")
+        logger.warning(f"⚠️ Secret '{secret_name}' already exists. Updating secret...")
+        secrets_manager_client.put_secret_value(
+            SecretId=secret_name,
+            SecretString=json.dumps({"password": password})
+        )
 
 def generate_terraform_code(message_body):
     instance_class = "db.t3.micro" if message_body['environment'].lower() == "dev" else "db.t3.medium"
@@ -56,6 +60,11 @@ def generate_terraform_code(message_body):
         auto_delete_tag = 'AutoDelete = "True"\n'
 
     return f"""
+module "secrets" {{
+  source = "./modules/secrets"
+  secret_name = "{secret_name}"
+}}
+
 resource "aws_db_instance" "{message_body['databaseName']}" {{
   identifier       = "{message_body['databaseName']}"
   engine           = "{message_body['engine'].lower()}"
@@ -63,7 +72,7 @@ resource "aws_db_instance" "{message_body['databaseName']}" {{
   allocated_storage = {allocated_storage}
 
   username         = "admin"           
-  password         = examplePass
+  password         = jsondecode(module.secrets.latest.secret_string)["password"]
 
   tags = {{
     Environment = "{message_body['environment'].capitalize()}"

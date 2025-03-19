@@ -1,6 +1,7 @@
 variable "db_name" {}
 variable "db_engine" {}
 variable "environment" {}
+variable "secret_name" {}
 
 variable "db_username" {
   default = "admin"
@@ -19,3 +20,5 @@ variable "secret_id" {
   description = "Unique identifier for the AWS Secrets Manager entry"
   type        = string
 }
+
+

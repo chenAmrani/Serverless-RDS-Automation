@@ -3,8 +3,6 @@ module "secrets" {
   secret_name = var.secret_name
 }
 
-
-
 resource "aws_db_instance" "rds_instance" {
   identifier             = var.db_name
   engine                 = var.db_engine
