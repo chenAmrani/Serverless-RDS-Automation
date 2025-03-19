@@ -46,7 +46,7 @@ jobs:
           command: |
             STACK_NAME=$(aws cloudformation list-stacks --region us-east-1 \
               --query "StackSummaries[?StackStatus=='CREATE_COMPLETE' || StackStatus=='UPDATE_COMPLETE'].StackName" \
-              --output text | grep "serverless-rds-stack")
+              --output text | grep "serverless-rds")
 
             if [ -n "$STACK_NAME" ]; then
               echo "✅ Stack exists ($STACK_NAME), skipping deployment."
