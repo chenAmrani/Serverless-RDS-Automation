@@ -66,11 +66,11 @@ jobs:
       - run:
           name: Extract DB Name from Terraform Output
           command: |
-            cd ~/project/infra
-            terraform init
-            DB_NAME=$(terraform output -raw rds_db_name | tr -d '\033')
-            echo "DB_NAME=$DB_NAME" >> $BASH_ENV
-            
+                cd ~/project/infra
+                terraform init
+                DB_NAME=$(terraform output -raw rds_db_name | sed 's/\x1b\[[0-9;]*m//g')
+                echo "DB_NAME=$DB_NAME" >> $BASH_ENV
+
       - run:
           name: Wait for CloudFormation Stack Update  
           command: |
