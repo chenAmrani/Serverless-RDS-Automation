@@ -45,6 +45,7 @@ jobs:
           name: Check if Stack Exists
           command: |
             STACK_NAME=$(aws cloudformation list-stacks \
+              --region us-east-1 \  # נוספה בדיקת REGION
               --query "StackSummaries[?StackStatus=='CREATE_COMPLETE' || StackStatus=='UPDATE_COMPLETE'].StackName" \
               --output text | grep "serverless-rds-stack")
 
@@ -66,10 +67,10 @@ jobs:
           name: Wait for CloudFormation Stack Update  
           command: |
             STACK_NAME=$(aws cloudformation list-stacks \
+              --region us-east-1 \  # ודא שהבדיקה מתבצעת באזור הנכון
               --query "StackSummaries[?StackStatus=='CREATE_COMPLETE' || StackStatus=='UPDATE_COMPLETE'].StackName" \
               --output text | grep "serverless-rds-stack")
 
-         
             if aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].StackStatus" --output text | grep -q "UPDATE_IN_PROGRESS"; then
                 echo "⏳ Stack is updating... Waiting for completion."
                 aws cloudformation wait stack-update-complete --stack-name $STACK_NAME
@@ -83,7 +84,7 @@ jobs:
           command: |
             cd ~/project/terraform  
             terraform init
-            terraform apply -auto-approve
+            terraform apply -auto-approve \
               -var="db_name=$DB_NAME" \
               -var="secret_name=mysql/$DB_NAME/DB_CREDENTIALS" \
               -var="secret_id=db_password_${DB_NAME}"
