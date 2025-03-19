@@ -44,12 +44,8 @@ jobs:
       - run:
           name: Check if Stack Exists
           command: |
-            STACK_NAME=$(aws cloudformation list-stacks \
-              --query "StackSummaries[?StackStatus=='CREATE_COMPLETE' || StackStatus=='UPDATE_COMPLETE'].StackName" \
-              --output text | grep "serverless-rds-stack")
-
-            if [ -n "$STACK_NAME" ]; then
-              echo "✅ Stack exists ($STACK_NAME), skipping deployment."
+            if aws cloudformation describe-stacks --stack-name serverless-rds-stack 2>/dev/null; then
+              echo "✅ Stack exists, skipping deployment."
               exit 0
             else
               echo "🚀 Stack does not exist, deploying..."
@@ -59,27 +55,27 @@ jobs:
       - run:
           name: Verify Secrets Manager Entry
           command: |
-            DATABASE_NAME=${DATABASE_NAME:-$(cat ~/project/database_name.txt)}  # קבלת שם מהקובץ
             aws secretsmanager get-secret-value \
-              --secret-id "mysql/${DATABASE_NAME}/DB_CREDENTIALS" \
-              --region us-east-1 || \
-            echo "❌ Secret not found for database ${DATABASE_NAME}. Please investigate."
+            --secret-id "mysql/exampleDB/DB_CREDENTIALS" || \
+            echo "❌ Secret not found. Please investigate."
+
+      - run:
+          name: List Terraform Files (Pre-check) 
+          command: |
+            ls -la ~/project/terraform
+            cat ~/project/terraform/*.tf || echo "❌ No Terraform content found."
 
       - run:
           name: Wait for CloudFormation Stack Update  
           command: |
-            STACK_NAME=$(aws cloudformation list-stacks \
-              --query "StackSummaries[?StackStatus=='CREATE_COMPLETE' || StackStatus=='UPDATE_COMPLETE'].StackName" \
-              --output text | grep "serverless-rds-stack")
+            aws cloudformation wait stack-update-complete \
+            --stack-name serverless-rds-stack || true
 
-         
-            if aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].StackStatus" --output text | grep -q "UPDATE_IN_PROGRESS"; then
-                echo "⏳ Stack is updating... Waiting for completion."
-                aws cloudformation wait stack-update-complete --stack-name $STACK_NAME
-                echo "✅ Stack update complete."
-            else
-                echo "✅ No update in progress. Skipping wait."
-            fi
+      - run:
+          name: List Terraform Files (Post-check) 
+          command: |
+            ls -la ~/project/terraform
+            cat ~/project/terraform/*.tf || echo "❌ No Terraform content found."
 
       - run:
           name: Deploy RDS via Terraform
@@ -87,7 +83,7 @@ jobs:
             cd ~/project/terraform  
             terraform init
             terraform apply -auto-approve
-
+            
 workflows:
   version: 2
   deploy_on_merge:
