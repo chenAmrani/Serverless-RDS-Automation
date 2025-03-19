@@ -19,7 +19,7 @@ Resources:
     Properties:
       Handler: sns_handler.lambda_handler
       Runtime: python3.11
-      CodeUri: ./lambda_code/
+      CodeUri: lambda/
       Environment:
         Variables:
           TOPIC_ARN: !Ref MyTopic
@@ -39,7 +39,7 @@ Resources:
     Properties:
       Handler: sqs_handler.lambda_handler
       Runtime: python3.11
-      CodeUri: ./lambda_code/
+      CodeUri: lambda/
       Environment:
         Variables:
           GITHUB_TOKEN: "{{resolve:secretsmanager:GITHUB_TOKEN}}"
@@ -68,7 +68,7 @@ Resources:
       CodeUri: lambda/
       Environment:
         Variables:
-          RETENTION_PERIOD: "0.0035"  
+          RETENTION_PERIOD: "3"  
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonRDSFullAccess
