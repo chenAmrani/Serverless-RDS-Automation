@@ -53,7 +53,8 @@ jobs:
             cd ~/project/infra
             terraform init
             terraform plan -out=tfplan -var-file="terraform.tfvars"
-            terraform apply -auto-approve tfplan
+            terraform apply -refresh-only -auto-approve tfplan
+            
 
 workflows:
   version: 2
