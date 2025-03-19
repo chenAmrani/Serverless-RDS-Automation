@@ -93,7 +93,8 @@ jobs:
             terraform apply -auto-approve \
               -var="db_name=$DB_NAME" \
               -var="secret_name=mysql/$DB_NAME/DB_CREDENTIALS" \
-              -var="secret_id=db_password_${DB_NAME}"
+              -var="secret_id=db_password_${DB_NAME}" \
+              -var-file=../infra/variables.tf
 
 workflows:
   version: 2
