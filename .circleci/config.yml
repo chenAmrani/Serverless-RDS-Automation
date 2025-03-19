@@ -68,9 +68,9 @@ jobs:
           command: |
             cd ~/project/infra
             terraform init
-            DB_NAME=$(terraform output -raw rds_db_name)
+            DB_NAME=$(terraform output -raw rds_db_name | tr -d '\033')
             echo "DB_NAME=$DB_NAME" >> $BASH_ENV
-
+            
       - run:
           name: Wait for CloudFormation Stack Update  
           command: |
