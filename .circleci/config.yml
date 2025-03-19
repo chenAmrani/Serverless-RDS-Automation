@@ -57,11 +57,19 @@ jobs:
               sam deploy --no-confirm-changeset --stack-name serverless-rds-stack --capabilities CAPABILITY_IAM
             fi
 
+      # - run:
+      #     name: Extract DB Name from Branch
+      #     command: |
+      #       DB_NAME=$(echo $CIRCLE_BRANCH | sed 's/feature\///' | sed 's/create-//')
+      #       echo "DB_NAME=$DB_NAME" >> $BASH_ENV  
+
       - run:
-          name: Extract DB Name from Branch
+          name: Extract DB Name from Terraform Output
           command: |
-            DB_NAME=$(echo $CIRCLE_BRANCH | sed 's/feature\///' | sed 's/create-//')
-            echo "DB_NAME=$DB_NAME" >> $BASH_ENV  
+            cd ~/project/infra
+            terraform init
+            DB_NAME=$(terraform output -raw rds_db_name)
+            echo "DB_NAME=$DB_NAME" >> $BASH_ENV
 
       - run:
           name: Wait for CloudFormation Stack Update  
