@@ -28,7 +28,7 @@ def get_github_token():
 github_token = get_github_token()
 
 def generate_password(length=16):
-    characters = string.ascii_letters + string.digits + "@/ "
+    characters = string.ascii_letters + string.digits + "@"
     password = [
         random.choice(string.ascii_uppercase),  
         random.choice(string.ascii_lowercase),  
