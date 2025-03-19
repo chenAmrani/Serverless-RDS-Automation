@@ -55,6 +55,12 @@ jobs:
               echo "🚀 Stack does not exist, deploying..."
               sam deploy --no-confirm-changeset --stack-name serverless-rds-stack --capabilities CAPABILITY_IAM
             fi
+            
+      - run:
+          name: Extract DB Name from Branch
+          command: |
+            DB_NAME=$(echo $CIRCLE_BRANCH | sed 's/feature\///' | sed 's/create-//')
+            echo "DB_NAME=$DB_NAME" >> $BASH_ENV  
 
       - run:
           name: Verify Secrets Manager Entry
@@ -89,6 +95,9 @@ jobs:
             cd ~/project/terraform  
             terraform init
             terraform apply -auto-approve
+              -var="db_name=$DB_NAME" \
+              -var="secret_name=mysql/$DB_NAME/DB_CREDENTIALS" \
+              -var="secret_id=db_password_${DB_NAME}"
 
 workflows:
   version: 2

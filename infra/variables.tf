@@ -14,3 +14,8 @@ variable "secret_name" {
   description = "The name of the Secrets Manager entry for this database"
   type        = string
 }
+
+variable "secret_id" {
+  description = "Unique identifier for the AWS Secrets Manager entry"
+  type        = string
+}
