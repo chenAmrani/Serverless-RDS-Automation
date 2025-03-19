@@ -53,12 +53,12 @@ def generate_terraform_code(message_body):
         auto_delete_tag = 'AutoDelete = "True"\n'
 
     return f"""
-data "aws_secretsmanager_secret" "db_password" {{
+data "aws_secretsmanager_secret" "db_password_{message_body['databaseName']}" {{
   name = "{secret_name}"
 }}
 
-data "aws_secretsmanager_secret_version" "latest" {{
-  secret_id = data.aws_secretsmanager_secret.db_password.id
+data "aws_secretsmanager_secret_version" "latest_{message_body['databaseName']}" {{
+  secret_id = data.aws_secretsmanager_secret.db_password_{message_body['databaseName']}.id
 }}
 
 resource "aws_db_instance" "{message_body['databaseName']}" {{
@@ -68,7 +68,7 @@ resource "aws_db_instance" "{message_body['databaseName']}" {{
   allocated_storage = {allocated_storage}
 
   username         = "admin"           
-  password         = jsondecode(data.aws_secretsmanager_secret_version.latest.secret_string)["password"]
+  password         = jsondecode(data.aws_secretsmanager_secret_version.latest_{message_body['databaseName']}.secret_string)["password"]
 
   tags = {{
     Environment = "{message_body['environment'].capitalize()}"
