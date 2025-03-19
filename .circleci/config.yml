@@ -98,7 +98,7 @@ jobs:
               -var="db_engine=MySQL" \
               -var="environment=Dev" \
               -var="secret_name=mysql/$(terraform output -raw rds_db_name | tr -d '\r\n')/DB_CREDENTIALS" \
-              -var="secret_id=yFxJKA*QE0lY"
+              -var="secret_id=db_password_$(terraform output -raw rds_db_name | tr -d '\r\n')"
             terraform apply -auto-approve tfplan
 
 workflows:
