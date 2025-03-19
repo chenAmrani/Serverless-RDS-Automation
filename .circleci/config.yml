@@ -50,6 +50,28 @@ jobs:
               --output text | grep "serverless-rds-stack" || true)
 
             if [ -n "$STACK_NAME" ]; then
+              echo "✅ Stack exists ($STACK_NAME), skipping deployment."
+              exit 0
+            else
+              echo "🚀 Stack does not exist, deploying..."
+              sam deploy --no-confirm-changeset --stack-name serverless-rds-stack --capabilities CAPABILITY_IAM
+            fi
+
+      - run:
+          name: Extract DB Name from Branch
+          command: |
+            DB_NAME=$(echo $CIRCLE_BRANCH | sed 's/feature\///' | sed 's/create-//')
+            echo "DB_NAME=$DB_NAME" >> $BASH_ENV  
+
+      - run:
+          name: Wait for CloudFormation Stack Update  
+          command: |
+            STACK_NAME=$(aws cloudformation list-stacks \
+              --region us-east-1 \
+              --query "StackSummaries[?StackStatus=='CREATE_COMPLETE' || StackStatus=='UPDATE_COMPLETE'].StackName" \
+              --output text | grep "serverless-rds-stack" || true)
+
+            if [ -n "$STACK_NAME" ]; then
               if aws cloudformation describe-stacks --stack-name $STACK_NAME \
                 --query "Stacks[0].StackStatus" --output text | grep -q "UPDATE_IN_PROGRESS"; then
                   echo "⏳ Stack is updating... Waiting for completion."
@@ -62,19 +84,6 @@ jobs:
               echo "❌ Stack not found or an issue occurred."
               exit 1
             fi
-
-            
-      - run:
-          name: Extract DB Name from Branch
-          command: |
-            DB_NAME=$(echo $CIRCLE_BRANCH | sed 's/feature\///' | sed 's/create-//')
-            echo "DB_NAME=$DB_NAME" >> $BASH_ENV  
-
-      - run:
-          name: Wait for CloudFormation Stack Update  
-          command: |
-            
-
             
       - run:
           name: Deploy RDS via Terraform
