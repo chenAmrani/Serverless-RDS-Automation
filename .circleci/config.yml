@@ -89,22 +89,6 @@ jobs:
             fi
 
       - run:
-          name: Extract DB Name from Terraform Output
-          command: |
-            cd ~/project/infra
-            terraform init
-            terraform refresh
-            DB_NAME=$(terraform output -raw rds_db_name | sed 's/\x1b\[[0-9;]*m//g' | xargs)
-
-            if [ -z "$DB_NAME" ]; then
-              echo "❌ Error: DB_NAME is empty or could not be extracted."
-              exit 1
-            fi
-
-            echo "🔍 DB_NAME found: '$DB_NAME'"
-            echo "DB_NAME=$DB_NAME" >> $BASH_ENV
-
-      - run:
           name: Deploy RDS via Terraform
           command: |
             cd ~/project/infra  
