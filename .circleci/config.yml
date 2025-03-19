@@ -44,17 +44,25 @@ jobs:
       - run:
           name: Check if Stack Exists
           command: |
-            STACK_NAME=$(aws cloudformation list-stacks --region us-east-1 \
+            STACK_NAME=$(aws cloudformation list-stacks \
+              --region us-east-1 \
               --query "StackSummaries[?StackStatus=='CREATE_COMPLETE' || StackStatus=='UPDATE_COMPLETE'].StackName" \
-              --output text | grep "serverless-rds")
+              -output text | grep "serverless-rds-stack" || true)
 
             if [ -n "$STACK_NAME" ]; then
-              echo "✅ Stack exists ($STACK_NAME), skipping deployment."
-              exit 0
+              if aws cloudformation describe-stacks --stack-name $STACK_NAME \
+                --query "Stacks[0].StackStatus" --output text | grep -q "UPDATE_IN_PROGRESS"; then
+                  echo "⏳ Stack is updating... Waiting for completion."
+                  aws cloudformation wait stack-update-complete --stack-name $STACK_NAME
+                  echo "✅ Stack update complete."
+              else
+                  echo "✅ No update in progress. Skipping wait."
+              fi
             else
-              echo "🚀 Stack does not exist, deploying..."
-              sam deploy --no-confirm-changeset --stack-name serverless-rds-stack --capabilities CAPABILITY_IAM
+              echo "❌ Stack not found or an issue occurred."
+              exit 1
             fi
+
             
       - run:
           name: Extract DB Name from Branch
@@ -65,17 +73,7 @@ jobs:
       - run:
           name: Wait for CloudFormation Stack Update  
           command: |
-            STACK_NAME=$(aws cloudformation list-stacks \
-              --query "StackSummaries[?StackStatus=='CREATE_COMPLETE' || StackStatus=='UPDATE_COMPLETE'].StackName" \
-              --output text | grep "serverless-rds-stack")
-
-            if aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].StackStatus" --output text | grep -q "UPDATE_IN_PROGRESS"; then
-                echo "⏳ Stack is updating... Waiting for completion."
-                aws cloudformation wait stack-update-complete --stack-name $STACK_NAME
-                echo "✅ Stack update complete."
-            else
-                echo "✅ No update in progress. Skipping wait."
-            fi
+            
 
             
       - run:
