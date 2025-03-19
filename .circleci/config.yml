@@ -91,11 +91,15 @@ jobs:
       - run:
           name: Deploy RDS via Terraform
           command: |
-            cd ~/project/terraform  
+            cd ~/project/infra
             terraform init
-            terraform apply -auto-approve \
-            -var="db_name=$DB_NAME" \
-            -var="secret_name=mysql/$DB_NAME/DB_CREDENTIALS"
+            terraform plan -out=tfplan \
+              -var="db_name=$(terraform output -raw rds_db_name)" \
+              -var="db_engine=MySQL" \
+              -var="environment=Dev" \
+              -var="secret_name=mysql/$(terraform output -raw rds_db_name | tr -d '\r\n')/DB_CREDENTIALS" \
+              -var="secret_id=db_password_$(terraform output -raw rds_db_name | tr -d '\r\n')"
+            terraform apply -auto-approve tfplan
 
 workflows:
   version: 2
