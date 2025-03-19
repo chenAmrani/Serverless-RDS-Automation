@@ -87,7 +87,17 @@ jobs:
               echo "❌ Stack not found or an issue occurred."
               exit 1
             fi
-                  
+
+
+      - run:
+          name: Extract DB Name from Terraform Output
+          command: |
+            cd ~/project/infra
+            terraform init
+            DB_NAME=$(terraform output -raw rds_db_name | sed 's/\x1b\[[0-9;]*m//g')
+            echo "DB_NAME=$DB_NAME" >> $BASH_ENV
+
+
       - run:
           name: Deploy RDS via Terraform
           command: |
