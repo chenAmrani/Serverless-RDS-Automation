@@ -33,7 +33,7 @@ def generate_password(length=16):
         random.choice(string.ascii_uppercase),  
         random.choice(string.ascii_lowercase),  
         random.choice(string.digits),           
-        random.choice("@/ ")                    
+        random.choice("@")                    
     ]
     password += random.choices(characters, k=length-4)
     random.shuffle(password)
