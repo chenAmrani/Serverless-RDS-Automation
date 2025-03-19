@@ -44,8 +44,8 @@ jobs:
       - run:
           name: Download terraform.tfvars from S3
           command: |
-            aws s3 cp s3://your-s3-bucket-name/terraform.tfvars ~/project/infra/terraform.tfvars
-            cat ~/project/infra/terraform.tfvars  
+            aws s3 cp s3://aws-sam-cli-managed-default-samclisourcebucket-ghfbaxo8g1tn/serverless-rds/terraform.tfvars ~/project/infra/terraform.tfvars
+            cat ~/project/infra/terraform.tfvars 
 
       - run:
           name: Deploy RDS via Terraform
