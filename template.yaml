@@ -92,6 +92,7 @@ Resources:
     Properties:
       Handler: lambda/cleanup_rds.lambda_handler
       Runtime: python3.11
+      CodeUri: /lambda/cleanup_rds.py
       Environment:
         Variables:
           RETENTION_PERIOD: "3"    
