@@ -1,6 +1,16 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+  CustomDomainName:
+    Type: String
+    Default: "api.example.com"
+    Description: "The custom domain name for the API"
+
+  CertificateArn:
+    Type: String
+    Description: "ARN of the ACM certificate for the custom domain"
+
 Resources:
 
   ServerlessApi:
@@ -70,12 +80,12 @@ Resources:
         - AmazonS3FullAccess
         - SQSPollerPolicy:
             QueueName: !GetAtt MyQueue.QueueName
-        - AmazonRDSFullAccess  
+        - AmazonRDSFullAccess
         - Statement:
             Effect: Allow
-            Action: 
+            Action:
               - secretsmanager:GetSecretValue
-              - secretsmanager:CreateSecret     
+              - secretsmanager:CreateSecret
               - secretsmanager:PutSecretValue
               - cloudformation:ListStacks
               - cloudformation:DescribeStacks
@@ -96,21 +106,37 @@ Resources:
       CodeUri: ./lambda
       Environment:
         Variables:
-          RETENTION_PERIOD: "3"    
+          RETENTION_PERIOD: "3"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonRDSFullAccess
-        - Statement:   
+        - Statement:
             Effect: Allow
-            Action: 
+            Action:
               - secretsmanager:GetSecretValue
             Resource: "*"
       Events:
         ScheduledEvent:
           Type: Schedule
           Properties:
-            Schedule: "rate(1 hour)" 
+            Schedule: "rate(1 hour)"
             Enabled: true
+
+  MyCustomDomain:
+    Type: AWS::ApiGateway::DomainName
+    Properties:
+      DomainName: !Ref CustomDomainName
+      CertificateArn: !Ref CertificateArn
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  BasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      DomainName: !Ref MyCustomDomain
+      RestApiId: !Ref ServerlessApi
+      Stage: Prod
 
 Outputs:
   ApiUrl:
@@ -128,3 +154,7 @@ Outputs:
   CleanupRDSLambda:
     Description: "ARN of the Cleanup RDS Lambda Function"
     Value: !GetAtt CleanupRDSLambda.Arn
+
+  CustomDomainUrl:
+    Description: "Custom domain URL for the API"
+    Value: !Sub "https://${CustomDomainName}/publish"
