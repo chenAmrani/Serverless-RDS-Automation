@@ -11,6 +11,10 @@ Parameters:
     Type: String
     Description: "ARN of the ACM certificate for the custom domain"
 
+  HostedZoneId:
+    Type: String
+    Description: "The ID of the Route 53 hosted zone for the domain"
+
 Resources:
 
   ServerlessApi:
@@ -137,6 +141,16 @@ Resources:
       DomainName: !Ref MyCustomDomain
       RestApiId: !Ref ServerlessApi
       Stage: Prod
+
+  DNSRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref CustomDomainName
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt MyCustomDomain.RegionalDomainName
+        HostedZoneId: !GetAtt MyCustomDomain.RegionalHostedZoneId
 
 Outputs:
   ApiUrl:
